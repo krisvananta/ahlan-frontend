@@ -1,26 +1,173 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ================================
+   AHLAN — Design System
+   Islamic-inspired modern palette:
+   Deep Greens, Creams, Golds
+   ================================ */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* --- Brand Colors --- */
+  --color-primary: #0a5c36;
+  --color-primary-light: #0d7a49;
+  --color-primary-dark: #073d24;
+  --color-accent: #c9a84c;
+  --color-accent-light: #ddc170;
+  --color-accent-dark: #a88a30;
+
+  /* --- Surfaces --- */
+  --color-cream: #faf6f0;
+  --color-cream-dark: #f0e8d8;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
+
+  /* --- Text --- */
+  --color-heading: #1a1a2e;
+  --color-body: #4a4a5a;
+  --color-muted: #8a8a9a;
+
+  /* --- Semantic --- */
+  --color-success: #10b981;
+  --color-error: #ef4444;
+  --color-warning: #f59e0b;
+
+  /* --- Dark Mode Surfaces (used via class toggle) --- */
+  --color-dark-bg: #0f0f1a;
+  --color-dark-surface: #1a1a2e;
+  --color-dark-elevated: #252540;
+
+  /* --- Fonts (mapped to next/font CSS variables) --- */
+  --font-heading: var(--font-playfair), "Playfair Display", Georgia, serif;
+  --font-body: var(--font-inter), "Inter", system-ui, sans-serif;
+
+  /* --- Spacing Scale --- */
+  --spacing-section: 6rem;
+  --spacing-section-mobile: 4rem;
+
+  /* --- Radii --- */
+  --radius-card: 1rem;
+  --radius-button: 0.625rem;
+  --radius-full: 9999px;
+
+  /* --- Shadows --- */
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 12px 40px rgba(0, 0, 0, 0.12);
+  --shadow-modal: 0 25px 60px rgba(0, 0, 0, 0.25);
+  --shadow-navbar: 0 1px 12px rgba(0, 0, 0, 0.08);
+
+  /* --- Transitions --- */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ================================
+   Global Resets & Base
+   ================================ */
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-cream);
+  color: var(--color-body);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ================================
+   Custom Scrollbar
+   ================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-accent);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent-dark);
+}
+
+/* ================================
+   Typography
+   ================================ */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  color: var(--color-heading);
+  line-height: 1.2;
+}
+
+/* ================================
+   Islamic Geometric Pattern (reusable BG)
+   ================================ */
+
+.pattern-overlay {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9a84c' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ================================
+   Glass Effect Utility
+   ================================ */
+
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.glass-dark {
+  background: rgba(15, 15, 26, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* ================================
+   Gradient Utilities
+   ================================ */
+
+.gradient-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+}
+
+.gradient-accent {
+  background: linear-gradient(135deg, var(--color-accent-dark) 0%, var(--color-accent) 50%, var(--color-accent-light) 100%);
+}
+
+.gradient-hero {
+  background: linear-gradient(
+    160deg,
+    var(--color-primary-dark) 0%,
+    var(--color-primary) 40%,
+    #0d6b42 100%
+  );
+}
+
+/* ================================
+   Section Divider
+   ================================ */
+
+.section-divider {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-accent) 50%,
+    transparent 100%
+  );
+  max-width: 200px;
+  margin: 0 auto;
 }
