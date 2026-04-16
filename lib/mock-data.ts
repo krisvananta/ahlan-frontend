@@ -21,6 +21,8 @@ export const mockMagazines: WPMagazine[] = [
     publishDate: "2026-04-01",
     pdfUrl: "/mock/magazine-12.pdf",
     price: 4.99,
+    pageCount: 48,
+    contentType: "official",
   },
   {
     id: "2",
@@ -32,6 +34,8 @@ export const mockMagazines: WPMagazine[] = [
     publishDate: "2026-03-01",
     pdfUrl: "/mock/magazine-11.pdf",
     price: 4.99,
+    pageCount: 44,
+    contentType: "official",
   },
   {
     id: "3",
@@ -44,6 +48,8 @@ export const mockMagazines: WPMagazine[] = [
     publishDate: "2026-02-01",
     pdfUrl: "/mock/magazine-10.pdf",
     price: 3.99,
+    pageCount: 40,
+    contentType: "official",
   },
   {
     id: "4",
@@ -56,6 +62,8 @@ export const mockMagazines: WPMagazine[] = [
     publishDate: "2026-01-01",
     pdfUrl: "/mock/magazine-09.pdf",
     price: 3.99,
+    pageCount: 36,
+    contentType: "official",
   },
   {
     id: "5",
@@ -68,6 +76,8 @@ export const mockMagazines: WPMagazine[] = [
     publishDate: "2025-12-01",
     pdfUrl: "/mock/magazine-08.pdf",
     price: 3.99,
+    pageCount: 36,
+    contentType: "official",
   },
   {
     id: "6",
@@ -80,6 +90,8 @@ export const mockMagazines: WPMagazine[] = [
     publishDate: "2025-11-01",
     pdfUrl: "/mock/magazine-07.pdf",
     price: 3.99,
+    pageCount: 32,
+    contentType: "official",
   },
 ];
 

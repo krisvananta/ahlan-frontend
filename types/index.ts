@@ -23,9 +23,19 @@ export interface WPMagazine {
   description: string;
   issueNumber: string;
   publishDate: string;
+  /** URL from ACF field `magazine_pdf` (File type) — the PDF e-book source */
   pdfUrl: string;
+  /** Media item ID for the PDF in WordPress (used for secure blob fetching) */
+  pdfMediaId?: string;
   price: number;
+  pageCount?: number;
   isPurchased?: boolean;
+  /**
+   * Content type discriminator:
+   * - "official"  → PDF e-book, opens in Secure PDF Viewer
+   * - "fan-made"  → Text-based article, opens in ThemeWrapper Design Engine
+   */
+  contentType: "official" | "fan-made";
 }
 
 export interface WPMediaItem {

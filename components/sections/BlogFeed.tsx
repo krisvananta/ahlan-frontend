@@ -4,9 +4,13 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Link from "next/link";
 import { ArrowUpRight, Calendar, Tag } from "lucide-react";
-import { mockPosts } from "@/lib/mock-data";
+import type { WPPost } from "@/types";
 
-export default function BlogFeed() {
+interface BlogFeedProps {
+  posts: WPPost[];
+}
+
+export default function BlogFeed({ posts }: BlogFeedProps) {
   const ref = useRef<HTMLElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -39,7 +43,7 @@ export default function BlogFeed() {
 
         {/* Blog Grid */}
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {mockPosts.slice(0, 6).map((post, i) => (
+          {posts.slice(0, 6).map((post, i) => (
             <motion.article
               key={post.id}
               initial={{ opacity: 0, y: 40 }}

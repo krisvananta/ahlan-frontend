@@ -56,13 +56,20 @@ export async function wpQuery<T>(
   query: string,
   variables?: Record<string, unknown>,
   revalidate: number = 60,
+  token?: string,
 ): Promise<T> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(WP_GRAPHQL_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
+    headers,
     body: JSON.stringify({ query, variables }),
     next: { revalidate },
   });
@@ -372,7 +379,175 @@ export async function getAllArticleSlugs(): Promise<string[]> {
 }
 
 // ================================
-// Legacy Aliases (backward compat for existing pages)
+// Magazine GraphQL Queries (ACF: magazine_pdf)
+// ================================
+
+const GET_MAGAZINES = `
+  query GetMagazines($first: Int = 20) {
+    magazines(first: $first, where: { status: PUBLISH }) {
+      nodes {
+        id
+        slug
+        title
+        excerpt
+        date
+        featuredImage {
+          node {
+            sourceUrl
+          }
+        }
+        magazineFields {
+          issueNumber
+          price
+          pageCount
+          magazinePdf {
+            mediaItemUrl
+            databaseId
+          }
+        }
+      }
+    }
+  }
+`;
+
+const GET_MAGAZINE_BY_ID = `
+  query GetMagazineById($id: ID!) {
+    magazine(id: $id, idType: DATABASE_ID) {
+      id
+      slug
+      title
+      excerpt
+      date
+      featuredImage {
+        node {
+          sourceUrl
+        }
+      }
+      magazineFields {
+        issueNumber
+        price
+        pageCount
+        magazinePdf {
+          mediaItemUrl
+          databaseId
+        }
+      }
+    }
+  }
+`;
+
+// ================================
+// Magazine Response Types
+// ================================
+
+interface WPGraphQLMagazineNode {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  date: string;
+  featuredImage: {
+    node: { sourceUrl: string };
+  } | null;
+  magazineFields: {
+    issueNumber: string | null;
+    price: number | null;
+    pageCount: number | null;
+    magazinePdf: {
+      mediaItemUrl: string;
+      databaseId: number;
+    } | null;
+  } | null;
+}
+
+interface GetMagazinesResponse {
+  magazines: { nodes: WPGraphQLMagazineNode[] };
+}
+
+interface GetMagazineByIdResponse {
+  magazine: WPGraphQLMagazineNode | null;
+}
+
+// ================================
+// Magazine Transformer
+// ================================
+
+function transformMagazine(node: WPGraphQLMagazineNode): WPMagazine {
+  const fields = node.magazineFields;
+  return {
+    id: node.id,
+    slug: node.slug,
+    title: node.title,
+    description: node.excerpt?.replace(/<\/?[^>]+(>|$)/g, "") || "",
+    coverImage: node.featuredImage?.node.sourceUrl || "/mock/magazine-1.jpg",
+    issueNumber: fields?.issueNumber || "0",
+    publishDate: node.date,
+    pdfUrl: fields?.magazinePdf?.mediaItemUrl || "",
+    pdfMediaId: fields?.magazinePdf?.databaseId?.toString(),
+    price: fields?.price || 0,
+    pageCount: fields?.pageCount || undefined,
+    contentType: "official", // All magazines from WP are Official PDF e-books
+  };
+}
+
+// ================================
+// Magazine Fetching Functions
+// ================================
+
+/** Fetch all published magazine issues */
+export async function getMagazines(): Promise<WPMagazine[]> {
+  if (USE_MOCK) return mockMagazines;
+
+  try {
+    const data = await wpQuery<GetMagazinesResponse>(GET_MAGAZINES);
+    return data.magazines.nodes.map(transformMagazine);
+  } catch (error) {
+    console.error("[Ahlan API] Failed to fetch magazines:", error);
+    if (process.env.NODE_ENV === "development") return mockMagazines;
+    throw error;
+  }
+}
+
+/** Fetch a single magazine by database ID */
+export async function getMagazineById(
+  id: string,
+): Promise<WPMagazine | null> {
+  if (USE_MOCK) {
+    return mockMagazines.find((m) => m.id === id) || null;
+  }
+
+  try {
+    const data = await wpQuery<GetMagazineByIdResponse>(
+      GET_MAGAZINE_BY_ID,
+      { id },
+      30,
+    );
+    if (!data.magazine) return null;
+    return transformMagazine(data.magazine);
+  } catch (error) {
+    console.error(`[Ahlan API] Failed to fetch magazine "${id}":`, error);
+    if (process.env.NODE_ENV === "development") {
+      return mockMagazines.find((m) => m.id === id) || null;
+    }
+    throw error;
+  }
+}
+
+/** Fetch user's purchased magazines (requires auth) */
+export async function getUserPurchases(): Promise<WPMagazine[]> {
+  // TODO: Implement real purchase check via WooCommerce/custom endpoint
+  // For now, mock first 3 as purchased
+  const magazines = await getMagazines();
+  return magazines.slice(0, 3).map((m) => ({ ...m, isPurchased: true }));
+}
+
+/** Fetch merchandise products (still using mock data) */
+export async function getProducts(): Promise<WPProduct[]> {
+  return mockProducts;
+}
+
+// ================================
+// Legacy Aliases (backward compat)
 // ================================
 
 export const getPosts = getArticles;
@@ -383,17 +558,138 @@ export async function getPostBySlug(
   return result || undefined;
 }
 
-/** Fetch all magazine issues (still using mock data) */
-export async function getMagazines(): Promise<WPMagazine[]> {
-  return mockMagazines;
+// ================================
+// Fan-Writer Workflows & Admin
+// ================================
+
+const SUBMIT_ARTICLE_MUTATION = `
+  mutation SubmitFanArticle($title: String!, $content: String!, $bgColor: String, $textColor: String, $primaryFont: String) {
+    createPost(
+      input: {
+        title: $title, 
+        content: $content, 
+        status: PENDING,
+        designConfig: {
+          bgColor: $bgColor,
+          textColor: $textColor,
+          primaryFont: $primaryFont
+        }
+      }
+    ) {
+      post {
+        id
+        title
+        status
+      }
+    }
+  }
+`;
+
+export async function submitFanArticle(
+  data: {
+    title: string;
+    content: string;
+    bgColor?: string;
+    textColor?: string;
+    primaryFont?: string;
+  },
+  token: string,
+): Promise<{ id: string; status: string }> {
+  // If no WP GraphQL setup, mock success
+  if (USE_MOCK) {
+    return { id: "mock-id-123", status: "PENDING" };
+  }
+
+  const response = await wpQuery<{ createPost: { post: { id: string; status: string } } }>(
+    SUBMIT_ARTICLE_MUTATION,
+    data,
+    0, // Don't cache mutations
+    token, // Send Authorization Header
+  );
+
+  return response.createPost.post;
 }
 
-/** Fetch user's purchased magazines (still using mock data) */
-export async function getUserPurchases(): Promise<WPMagazine[]> {
-  return mockMagazines.slice(0, 3).map((m) => ({ ...m, isPurchased: true }));
+const GET_PENDING_ARTICLES = `
+  query GetPendingArticles {
+    posts(first: 50, where: { status: PENDING }) {
+      nodes {
+        id
+        slug
+        title
+        excerpt
+        content
+        date
+        author {
+          node {
+            name
+            email
+          }
+        }
+        designConfig {
+          bgColor
+          textColor
+        }
+      }
+    }
+  }
+`;
+
+export async function getPendingArticles(token: string): Promise<WPPost[]> {
+  if (USE_MOCK) {
+    // Return empty or mock pending array
+    return [];
+  }
+
+  const response = await wpQuery<GetPostsResponse>(
+    GET_PENDING_ARTICLES,
+    {},
+    0, 
+    token
+  );
+
+  // We map using transformPost (which assumes a more complete graphic payload), 
+  // so we might need a slight variant, but let's safely pass what we have.
+  return response.posts.nodes.map(node => ({
+    ...transformPost(node as any),
+  }));
 }
 
-/** Fetch merchandise products (still using mock data) */
-export async function getProducts(): Promise<WPProduct[]> {
-  return mockProducts;
+const UPDATE_ARTICLE_MUTATION = `
+  mutation ApproveFanArticle($id: ID!, $status: PostStatusEnum!, $reviewNote: String, $pdfMediaId: Int) {
+    updatePost(
+      input: {
+        id: $id, 
+        status: $status,
+        reviewNote: $reviewNote,
+        magazinePdf: $pdfMediaId
+      }
+    ) {
+      post {
+        id
+        status
+      }
+    }
+  }
+`;
+
+export async function approveArticle(
+  data: {
+    id: string;
+    status: "PUBLISH" | "TRASH" | "DRAFT";
+    reviewNote?: string;
+    pdfMediaId?: number;
+  },
+  token: string,
+) {
+  if (USE_MOCK) return { id: data.id, status: data.status };
+
+  const response = await wpQuery(
+    UPDATE_ARTICLE_MUTATION,
+    data,
+    0,
+    token
+  );
+
+  return response;
 }
