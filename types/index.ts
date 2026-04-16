@@ -55,12 +55,26 @@ export interface WPProduct {
 // Design Engine (ACF / Fan-Writer)
 // ================================
 
+/** ACF field group: "Design Config" — drives per-article visual theming */
 export interface DesignConfig {
+  /** Background color for the article page (hex) */
   bgColor: string;
+  /** Primary text color (hex) */
   textColor: string;
-  fontFamily: string;
-  accentColor: string;
-  borderStyle?: string;
+  /** Font selection: "serif" | "sans" | "mono" */
+  primaryFont: string;
+  /** Visual decoration style: "vintage" | "modern" | "minimal" | "classic" */
+  decorationType: string;
+  /** Accent color for headings, links, borders (hex). Derived from bgColor if absent. */
+  accentColor?: string;
+}
+
+/** Shape of the raw ACF response from WPGraphQL */
+export interface WPDesignConfigRaw {
+  bgColor: string | null;
+  textColor: string | null;
+  primaryFont: string | null;
+  decorationType: string | null;
 }
 
 // ================================

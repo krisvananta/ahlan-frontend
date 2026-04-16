@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Calendar, User } from "lucide-react";
+import { ArrowLeft, Calendar, User, Tag } from "lucide-react";
 import { getPostBySlug, getPosts } from "@/lib/api";
 import ThemeWrapper from "@/components/article/ThemeWrapper";
 import type { Metadata } from "next";
@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const post = await getPostBySlug(slug);
 
-  if (!post) return { title: "Post Not Found" };
+  if (!post) return { title: "Post Not Found — Ahlan" };
 
   return {
     title: `${post.title} — Ahlan`,
@@ -35,9 +35,12 @@ export default async function BlogPostPage({ params }: PageProps) {
   const designConfig = post.designConfig || {
     bgColor: "#faf6f0",
     textColor: "#2d3436",
-    fontFamily: "serif",
+    primaryFont: "serif",
+    decorationType: "minimal",
     accentColor: "#0a5c36",
   };
+
+  const accentColor = designConfig.accentColor || "#0a5c36";
 
   return (
     <div className="min-h-screen pt-20">
@@ -61,12 +64,13 @@ export default async function BlogPostPage({ params }: PageProps) {
             {post.categories.map((cat) => (
               <span
                 key={cat}
-                className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider"
+                className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider"
                 style={{
-                  backgroundColor: `${designConfig.accentColor}15`,
-                  color: designConfig.accentColor,
+                  backgroundColor: `${accentColor}15`,
+                  color: accentColor,
                 }}
               >
+                <Tag size={10} />
                 {cat}
               </span>
             ))}
@@ -93,7 +97,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           {/* Divider */}
           <div
             className="mt-8 h-px w-full"
-            style={{ backgroundColor: `${designConfig.accentColor}20` }}
+            style={{ backgroundColor: `${accentColor}20` }}
           />
         </header>
 
@@ -101,19 +105,30 @@ export default async function BlogPostPage({ params }: PageProps) {
         <div dangerouslySetInnerHTML={{ __html: post.content }} />
 
         {/* Author Box */}
-        <footer className="mt-16 border-t pt-8" style={{ borderColor: `${designConfig.accentColor}20` }}>
-          <div className="flex items-center gap-4">
+        <footer
+          className="mt-16 border-t pt-8"
+          style={{ borderColor: `${accentColor}20` }}
+        >
+          <div className="flex items-start gap-4">
             <div
-              className="flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold text-white"
-              style={{ backgroundColor: designConfig.accentColor }}
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white"
+              style={{ backgroundColor: accentColor }}
             >
               {post.author.name.charAt(0)}
             </div>
             <div>
-              <p className="font-bold" style={{ color: designConfig.accentColor }}>
+              <p className="text-xs font-semibold uppercase tracking-wider opacity-50">
+                Written by
+              </p>
+              <p
+                className="mt-0.5 font-heading text-lg font-bold"
+                style={{ color: accentColor }}
+              >
                 {post.author.name}
               </p>
-              <p className="text-sm opacity-60">Contributing Writer at Ahlan</p>
+              <p className="mt-1 text-sm opacity-60">
+                Contributing Writer at Ahlan
+              </p>
             </div>
           </div>
         </footer>

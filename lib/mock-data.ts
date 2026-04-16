@@ -90,7 +90,8 @@ export const mockMagazines: WPMagazine[] = [
 const defaultDesignConfig: DesignConfig = {
   bgColor: "#faf6f0",
   textColor: "#2d3436",
-  fontFamily: "serif",
+  primaryFont: "serif",
+  decorationType: "minimal",
   accentColor: "#0a5c36",
 };
 
@@ -144,7 +145,8 @@ export const mockPosts: WPPost[] = [
     designConfig: {
       bgColor: "#f3e5f5",
       textColor: "#2d3436",
-      fontFamily: "serif",
+      primaryFont: "serif",
+      decorationType: "vintage",
       accentColor: "#6c5ce7",
     },
   },
@@ -171,7 +173,8 @@ export const mockPosts: WPPost[] = [
     designConfig: {
       bgColor: "#fff8e1",
       textColor: "#3e2723",
-      fontFamily: "sans-serif",
+      primaryFont: "sans",
+      decorationType: "modern",
       accentColor: "#f57c00",
     },
   },
@@ -198,7 +201,8 @@ export const mockPosts: WPPost[] = [
     designConfig: {
       bgColor: "#e8f5e9",
       textColor: "#1b5e20",
-      fontFamily: "serif",
+      primaryFont: "serif",
+      decorationType: "classic",
       accentColor: "#2e7d32",
     },
   },
@@ -247,7 +251,8 @@ export const mockPosts: WPPost[] = [
     designConfig: {
       bgColor: "#e0f7fa",
       textColor: "#004d40",
-      fontFamily: "sans-serif",
+      primaryFont: "sans",
+      decorationType: "modern",
       accentColor: "#00897b",
     },
   },
