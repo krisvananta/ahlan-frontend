@@ -94,9 +94,12 @@ export interface WPDesignConfigRaw {
 export interface User {
   id: string;
   name: string;
+  nickname: string;
   email: string;
   avatar: string;
   role: string;
+  has_all_access?: boolean;
+  purchased_magazines?: string[];
 }
 
 export interface AuthState {

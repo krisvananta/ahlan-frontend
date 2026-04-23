@@ -122,12 +122,12 @@ export default function Navbar() {
                 className="flex items-center gap-2 rounded-full border border-white/20 px-3 py-1.5 text-sm font-medium transition-all hover:border-accent/50"
               >
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-xs font-bold text-white">
-                  {user?.name?.charAt(0) || "U"}
+                  {(user?.nickname || user?.name || "U").charAt(0)}
                 </div>
                 <span
                   className={`hidden sm:inline ${isScrolled ? "text-heading" : "text-white"}`}
                 >
-                  {user?.name}
+                  {user?.nickname || user?.name}
                 </span>
                 <ChevronDown
                   size={14}

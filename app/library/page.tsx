@@ -22,8 +22,14 @@ export default function LibraryPage() {
   const { isAuthenticated, user, openAuthModal } = useAuth();
   const [activeTab, setActiveTab] = useState<LibraryTab>("official");
 
-  // Mock data
-  const purchasedMagazines = mockMagazines.slice(0, 3);
+  // RBAC Access mapping
+  const hasAccess = (id: string) => {
+     if (user?.role === "administrator") return true;
+     if (user?.has_all_access) return true;
+     return user?.purchased_magazines?.includes(id) || false;
+  };
+
+  const purchasedMagazines = mockMagazines.filter(m => hasAccess(m.id));
   const fanArticles = mockPosts.slice(0, 4);
 
   // Auth gate

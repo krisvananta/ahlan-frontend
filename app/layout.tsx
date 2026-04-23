@@ -6,6 +6,7 @@ import Footer from "@/components/layout/Footer";
 import AuthModal from "@/components/ui/AuthModal";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
+import { Toaster } from "sonner";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -52,6 +53,7 @@ export default function RootLayout({
       <body className="min-h-screen">
         <QueryProvider>
           <AuthProvider>
+            <Toaster position="top-right" richColors />
             <Navbar />
             <main>{children}</main>
             <Footer />

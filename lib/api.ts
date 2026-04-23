@@ -693,3 +693,68 @@ export async function approveArticle(
 
   return response;
 }
+
+// ================================
+// Authentication & Sync
+// ================================
+
+const LOGIN_MUTATION = `
+  mutation LoginUser($username: String!, $password: String!) {
+    login(input: { username: $username, password: $password }) {
+      authToken
+      user {
+        id
+        name
+        nickname
+        email
+        roles {
+          nodes {
+            name
+          }
+        }
+        hasAllAccess: databaseId
+      }
+    }
+  }
+`;
+
+export async function loginWithGraphQL(username: string, password: string) {
+  // Pass explicit 0 revalidate to ensure no caching on auth keys
+  const res = await wpQuery<any>(
+    LOGIN_MUTATION,
+    { username, password },
+    0
+  );
+  
+  if (!res?.login?.authToken) throw new Error("Invalid Credentials");
+  return res.login;
+}
+
+const VIEWER_QUERY = `
+  query GetViewer {
+    viewer {
+      id
+      name
+      nickname
+      email
+      roles {
+        nodes {
+          name
+        }
+      }
+      hasAllAccess: databaseId
+    }
+  }
+`;
+
+export async function fetchViewer(token: string) {
+  const res = await wpQuery<any>(
+    VIEWER_QUERY,
+    {},
+    0,
+    token
+  );
+  
+  if (!res?.viewer) throw new Error("Expired or Invalid Token");
+  return res.viewer;
+}

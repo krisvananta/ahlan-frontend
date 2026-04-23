@@ -2,10 +2,13 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { ChevronLeft, ChevronRight, Eye, Download } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, Download, ShoppingCart, LockOpen } from "lucide-react";
 import { mockMagazines } from "@/lib/mock-data";
+import { useAuth } from "@/providers/AuthProvider";
+import Link from "next/link";
 
 export default function MagazineGrid() {
+  const { user } = useAuth();
   const ref = useRef<HTMLElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -17,6 +20,12 @@ export default function MagazineGrid() {
       left: dir === "left" ? -amount : amount,
       behavior: "smooth",
     });
+  };
+
+  const hasAccess = (id: string) => {
+     if (user?.role === "administrator") return true;
+     if (user?.has_all_access) return true;
+     return user?.purchased_magazines?.includes(id) || false;
   };
 
   return (
@@ -73,44 +82,54 @@ export default function MagazineGrid() {
           className="scrollbar-hide flex gap-6 overflow-x-auto pb-4"
           style={{ scrollSnapType: "x mandatory" }}
         >
-          {mockMagazines.map((mag, i) => (
-            <motion.div
-              key={mag.id}
-              initial={{ opacity: 0, y: 40 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="group flex-shrink-0"
-              style={{ scrollSnapAlign: "start" }}
-            >
-              <div className="relative w-56 sm:w-64">
-                {/* Cover */}
-                <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-[var(--color-dark-surface)] shadow-lg transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-accent/10">
-                  {/* Placeholder cover with gradient */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-primary/80 via-primary-dark to-primary-dark p-6 text-center">
-                    <span className="font-heading text-5xl font-bold text-accent opacity-40">
-                      أ
-                    </span>
-                    <h3 className="mt-3 font-heading text-lg font-bold text-white">
-                      {mag.title}
-                    </h3>
-                    <p className="mt-2 text-xs text-white/50">
-                      Issue #{mag.issueNumber}
-                    </p>
-                  </div>
+          {mockMagazines.map((mag, i) => {
+            const owned = hasAccess(mag.id);
+            
+            return (
+              <motion.div
+                key={mag.id}
+                initial={{ opacity: 0, y: 40 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="group flex-shrink-0"
+                style={{ scrollSnapAlign: "start" }}
+              >
+                <div className="relative w-56 sm:w-64">
+                  {/* Cover */}
+                  <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-[var(--color-dark-surface)] shadow-lg transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-accent/10">
+                    {/* Placeholder cover with gradient */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-primary/80 via-primary-dark to-primary-dark p-6 text-center">
+                      <span className="font-heading text-5xl font-bold text-accent opacity-40">
+                        أ
+                      </span>
+                      <h3 className="mt-3 font-heading text-lg font-bold text-white">
+                        {mag.title}
+                      </h3>
+                      <p className="mt-2 text-xs text-white/50">
+                        Issue #{mag.issueNumber}
+                      </p>
+                    </div>
 
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/80 via-transparent to-transparent p-5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                    <div className="flex w-full gap-2">
-                      <button className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-accent py-2.5 text-xs font-semibold text-white transition-colors hover:bg-accent-light">
-                        <Eye size={14} />
-                        Preview
-                      </button>
-                      <button className="flex items-center justify-center rounded-lg border border-white/20 p-2.5 text-white transition-colors hover:bg-white/10">
-                        <Download size={14} />
-                      </button>
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/80 via-transparent to-transparent p-5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                      <div className="flex w-full gap-2">
+                        {owned ? (
+                          <Link href="/library" className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-green-600/90 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-green-500">
+                            <LockOpen size={14} />
+                            Read Now
+                          </Link>
+                        ) : (
+                          <button className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-accent py-2.5 text-xs font-semibold text-white transition-colors hover:bg-accent-light">
+                            <ShoppingCart size={14} />
+                            Buy - ${mag.price}
+                          </button>
+                        )}
+                        <button className="flex items-center justify-center rounded-lg border border-white/20 p-2.5 text-white transition-colors hover:bg-white/10" title="Preview Summary">
+                          <Eye size={14} />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
 
                 {/* Meta */}
                 <div className="mt-4">
@@ -126,7 +145,8 @@ export default function MagazineGrid() {
                 </div>
               </div>
             </motion.div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   type ReactNode,
 } from "react";
 import type { User, AuthState, LoginCredentials, RegisterCredentials } from "@/types";
@@ -20,31 +21,49 @@ interface AuthContextValue extends AuthState {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-/** Mock user for demo purposes */
-const mockUser: User = {
-  id: "1",
-  name: "Ahmad Faris",
-  email: "ahmad@ahlan.com",
-  avatar: "/mock/avatar-1.jpg",
-  role: "subscriber",
-};
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Requirement 4: Data Sync - Refresh user data from WP on load
+  useEffect(() => {
+     async function hydrateSession() {
+        try {
+           const res = await fetch("/api/auth/me");
+           if (res.ok) {
+              const data = await res.json();
+              setUser(data.user);
+              setToken(data.token);
+           }
+        } catch (error) {
+           console.error("Session hydration failed", error);
+        } finally {
+           setIsLoading(false);
+        }
+     }
+     hydrateSession();
+  }, []);
 
   const login = useCallback(async (creds: LoginCredentials) => {
     setIsLoading(true);
     try {
-      // Mock login — in production, call /api/auth/login
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      if (creds.email && creds.password) {
-        setUser(mockUser);
-        setToken("mock-jwt-token");
-        setIsAuthModalOpen(false);
-      }
+      const res = await fetch("/api/auth/login", {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify(creds)
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Login Failed");
+      
+      setUser(data.user);
+      setToken(data.token);
+      setIsAuthModalOpen(false);
+    } catch (error) {
+       console.error(error);
+       throw error;
     } finally {
       setIsLoading(false);
     }
@@ -53,21 +72,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = useCallback(async (creds: RegisterCredentials) => {
     setIsLoading(true);
     try {
-      // Mock register — in production, call /api/auth/register
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-      if (creds.name && creds.email && creds.password) {
-        setUser({ ...mockUser, name: creds.name, email: creds.email });
-        setToken("mock-jwt-token");
-        setIsAuthModalOpen(false);
-      }
+      // Typically registers against WP /wp/v2/users, then logs in.
+      // For now we assume register might hit a mock or backend endpoint safely.
+      // To strictly remove 'Ahmad Faris', we must map register dynamically. 
+      // If no register proxy is wired, throw an error.
+      throw new Error("Registration endpoint is currently restricted to Administrators.");
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const logout = useCallback(() => {
-    setUser(null);
-    setToken(null);
+  const logout = useCallback(async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
+      setUser(null);
+      setToken(null);
+    }
   }, []);
 
   const openAuthModal = useCallback(() => setIsAuthModalOpen(true), []);

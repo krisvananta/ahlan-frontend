@@ -36,7 +36,25 @@ export async function GET(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
-    // In a real WP app, we would verify the token here OR proxy the token to WP
+    try {
+       // Decode our Mock JWT payload (or standard JWT data logic)
+       const tokenString = authHeader.split(" ")[1];
+       const payloadBase64 = tokenString.split(".")[1];
+       const userData = JSON.parse(atob(payloadBase64));
+
+       // Access Logic Check:
+       const isAdmin = userData.role === "administrator";
+       const hasAllAccess = userData.has_all_access === true;
+       const hasPurchased = userData.purchased_magazines?.includes(id);
+
+       if (!isAdmin && !hasAllAccess && !hasPurchased) {
+          return NextResponse.json({ error: "Access Denied. You do not own this magazine." }, { status: 403 });
+       }
+    } catch (err) {
+       return NextResponse.json({ error: "Invalid Authorization Token" }, { status: 403 });
+    }
+
+    // In a real WP app, we would verify the token cryptographically here OR proxy the token to WP
     // For now, we will forward the token to WordPress directly during the fetch!
     
     // 2. Fetch the PDF from WordPress

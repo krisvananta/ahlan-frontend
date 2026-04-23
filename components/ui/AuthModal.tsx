@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Mail, Lock, User, Loader2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import type { ModalView } from "@/types";
+import { toast } from "sonner";
 
 const overlayVariants = {
   hidden: { opacity: 0 },
@@ -40,12 +41,19 @@ export default function AuthModal() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (view === "login") {
-      await login({ email: formData.email, password: formData.password });
-    } else {
-      await register(formData);
+    try {
+      if (view === "login") {
+        await login({ email: formData.email, password: formData.password });
+        toast.success("Welcome back to Ahlan!");
+      } else {
+        await register(formData);
+        toast.success("Account created! Welcome to the family.");
+      }
+      setFormData({ name: "", email: "", password: "" });
+    } catch (err: any) {
+      const message = err.message || "Something went wrong. Please try again.";
+      toast.error(message);
     }
-    setFormData({ name: "", email: "", password: "" });
   };
 
   const switchView = () => {
