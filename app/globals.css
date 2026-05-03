@@ -12,12 +12,14 @@
   --color-primary: #EF273E;
   --color-primary-light: #f14d5e;
   --color-primary-dark: #c11f32;
-  --color-accent: #1F1F1F; /* Modern contrast accent */
+  --color-accent: #1F1F1F;
+  /* Modern contrast accent */
   --color-accent-light: #3d3d3d;
   --color-accent-dark: #000000;
 
   /* --- Surfaces & Backgrounds --- */
-  --color-cream: #F1F1F1; /* Primary brand light color */
+  --color-cream: #F1F1F1;
+  /* Primary brand light color */
   --color-cream-dark: #e5e5e5;
   --color-surface: #ffffff;
   --color-surface-elevated: #f8f8f8;
@@ -29,7 +31,8 @@
 
   /* --- Semantic --- */
   --color-success: #10b981;
-  --color-error: #EF273E; /* Using primary red for error too as it fits the vibe */
+  --color-error: #EF273E;
+  /* Using primary red for error too as it fits the vibe */
   --color-warning: #f59e0b;
 
   /* --- Dark Mode Palette --- */
@@ -40,7 +43,8 @@
   /* --- Fonts (mapped to next/font CSS variables) --- */
   --font-heading: var(--font-funnel), "Funnel Display", sans-serif;
   --font-body: var(--font-jakarta), "Plus Jakarta Sans", sans-serif;
-  --font-accent: "Santor", serif; /* Placeholder for custom brand font */
+  --font-accent: "Santor", serif;
+  /* Placeholder for custom brand font */
 
   /* --- Spacing Scale --- */
   --spacing-section: 6rem;
@@ -48,7 +52,8 @@
 
   /* --- Radii --- */
   --radius-card: 1rem;
-  --radius-button: 0.5rem; /* Slightly sharper for modern look */
+  --radius-button: 0.5rem;
+  /* Slightly sharper for modern look */
   --radius-full: 9999px;
 
   /* --- Shadows --- */
@@ -128,7 +133,6 @@ h6 {
 .glass {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 .glass-dark {
@@ -150,12 +154,10 @@ h6 {
 }
 
 .gradient-hero {
-  background: linear-gradient(
-    160deg,
-    var(--color-accent-dark) 0%,
-    var(--color-accent) 40%,
-    #2d2d2d 100%
-  );
+  background: linear-gradient(160deg,
+      var(--color-accent-dark) 0%,
+      var(--color-accent) 40%,
+      #2d2d2d 100%);
 }
 
 /* ================================
@@ -164,12 +166,10 @@ h6 {
 
 .section-divider {
   height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--color-primary) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      var(--color-primary) 50%,
+      transparent 100%);
   max-width: 200px;
   margin: 0 auto;
 }

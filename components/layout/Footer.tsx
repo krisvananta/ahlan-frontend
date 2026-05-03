@@ -39,7 +39,7 @@ export default function Footer() {
                 alt="Ahlan Logo"
                 width={140}
                 height={50}
-                className="h-12 w-auto object-contain mix-blend-multiply"
+                className="h-12 w-auto object-contain"
               />
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/60">
