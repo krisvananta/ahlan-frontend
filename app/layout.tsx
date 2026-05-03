@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, Funnel_Display } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -8,15 +8,15 @@ import { AuthProvider } from "@/providers/AuthProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { Toaster } from "sonner";
 
-const playfair = Playfair_Display({
+const funnel = Funnel_Display({
   subsets: ["latin"],
-  variable: "--font-playfair",
+  variable: "--font-funnel",
   display: "swap",
 });
 
-const inter = Inter({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-jakarta",
   display: "swap",
 });
 
@@ -48,7 +48,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${playfair.variable} ${inter.variable} antialiased`}
+      className={`${funnel.variable} ${jakarta.variable} antialiased`}
     >
       <body className="min-h-screen">
         <QueryProvider>

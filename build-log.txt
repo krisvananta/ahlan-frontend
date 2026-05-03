@@ -1,16 +1,20 @@
-﻿Γû▓ Next.js 16.2.3 (Turbopack)
+﻿
+> ahlan-frontend@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.2.3 (Turbopack)
 - Environments: .env.local
 
   Creating an optimized production build ...
-Γ£ô Compiled successfully in 5.2s
+Γ£ô Compiled successfully in 10.9s
   Running TypeScript ...
-  Finished TypeScript in 5.6s ...
+  Finished TypeScript in 8.1s ...
   Collecting page data using 11 workers ...
   Generating static pages using 11 workers (0/25) ...
 node.exe : ΓÜá metadataBase property in metadata export is not set for resolving social open graph or twitter images, 
 using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
-At C:\Program Files\nodejs\npx.ps1:16 char:5
-+     & "$basedir/node$exe"  "$basedir/node_modules/npm/bin/npx-cli.js" ...
+At C:\Program Files\nodejs\npm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/npm/bin/npm-cli.js" ...
 +     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (ΓÜá metadataBas...ta#metadatabase:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
@@ -18,7 +22,7 @@ At C:\Program Files\nodejs\npx.ps1:16 char:5
   Generating static pages using 11 workers (6/25) 
   Generating static pages using 11 workers (12/25) 
   Generating static pages using 11 workers (18/25) 
-Γ£ô Generating static pages using 11 workers (25/25) in 1222ms
+Γ£ô Generating static pages using 11 workers (25/25) in 1332ms
   Finalizing page optimization ...
 
 Route (app)                               Revalidate  Expire

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useAuth } from "@/providers/AuthProvider";
 import { mockMagazines } from "@/lib/mock-data";
 import { mockPosts } from "@/lib/mock-data";
@@ -170,9 +171,13 @@ export default function LibraryPage() {
                     {/* Cover */}
                     <div className="relative aspect-[4/3] bg-gradient-to-br from-primary/80 via-primary-dark to-primary-dark">
                       <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                        <span className="font-heading text-4xl font-bold text-accent opacity-30">
-                          أ
-                        </span>
+                        <Image
+                          src="/logo.png"
+                          alt="Ahlan Logo"
+                          width={120}
+                          height={48}
+                          className="opacity-20 grayscale"
+                        />
                         <h3 className="mt-2 font-heading text-base font-bold text-white">
                           {mag.title}
                         </h3>
@@ -246,14 +251,13 @@ export default function LibraryPage() {
                       }}
                     >
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <span
-                          className="font-heading text-5xl font-bold opacity-15"
-                          style={{
-                            color: post.designConfig?.accentColor,
-                          }}
-                        >
-                          أ
-                        </span>
+                        <Image
+                          src="/logo.png"
+                          alt="Ahlan Logo"
+                          width={100}
+                          height={40}
+                          className="opacity-15 grayscale"
+                        />
                       </div>
 
                       {/* Type badge */}

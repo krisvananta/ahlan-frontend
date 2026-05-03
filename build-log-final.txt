@@ -1,0 +1,58 @@
+﻿
+> ahlan-frontend@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.2.3 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 5.5s
+  Running TypeScript ...
+  Finished TypeScript in 5.0s ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/25) ...
+node.exe : ΓÜá metadataBase property in metadata export is not set for resolving social open graph or twitter images, 
+using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+At C:\Program Files\nodejs\npm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/npm/bin/npm-cli.js" ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ΓÜá metadataBas...ta#metadatabase:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  Generating static pages using 11 workers (6/25) 
+  Generating static pages using 11 workers (12/25) 
+  Generating static pages using 11 workers (18/25) 
+Γ£ô Generating static pages using 11 workers (25/25) in 1179ms
+  Finalizing page optimization ...
+
+Route (app)                               Revalidate  Expire
+Γöî Γùï /                                             1m      1y
+Γö£ Γùï /_not-found
+Γö£ Γùï /admin/review
+Γö£ ╞Æ /admin/review/[id]
+Γö£ ╞Æ /api/admin/upload-ebook
+Γö£ ╞Æ /api/auth/login
+Γö£ ╞Æ /api/auth/logout
+Γö£ ╞Æ /api/auth/me
+Γö£ ╞Æ /api/magazines/[id]/pdf
+Γö£ ΓùÅ /articles/[slug]
+Γöé Γö£ /articles/beauty-of-islamic-geometry
+Γöé Γö£ /articles/modern-muslim-fashion
+Γöé Γö£ /articles/halal-food-revolution
+Γöé Γöö [+3 more paths]
+Γö£ Γùï /blog                                         1m      1y
+Γö£ ΓùÅ /blog/[slug]                                  1m      1y
+Γöé Γö£ /blog/beauty-of-islamic-geometry              1m      1y
+Γöé Γö£ /blog/modern-muslim-fashion                   1m      1y
+Γöé Γö£ /blog/halal-food-revolution                   1m      1y
+Γöé Γöö [+3 more paths]
+Γö£ Γùï /dashboard/history
+Γö£ Γùï /dashboard/submit
+Γö£ Γùï /library
+Γöö ╞Æ /magazines/[id]
+
+
+Γùï  (Static)   prerendered as static content
+ΓùÅ  (SSG)      prerendered as static HTML (uses generateStaticParams)
+╞Æ  (Dynamic)  server-rendered on demand
+

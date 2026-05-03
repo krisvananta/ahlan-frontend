@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Heart } from "lucide-react";
 
 const footerLinks = {
@@ -25,22 +26,21 @@ export default function Footer() {
       {/* Geometric pattern overlay */}
       <div className="pattern-overlay pointer-events-none absolute inset-0 opacity-30" />
 
-      {/* Gold accent line */}
-      <div className="h-1 gradient-accent" />
+      {/* Brand accent line */}
+      <div className="h-1 gradient-primary" />
 
       <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <Link href="/" className="inline-flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
-                <span className="font-heading text-xl font-bold text-white">
-                  أ
-                </span>
-              </div>
-              <span className="font-heading text-2xl font-bold text-white">
-                Ahlan
-              </span>
+            <Link href="/" className="inline-flex items-center">
+              <Image
+                src="/logo.png"
+                alt="Ahlan Logo"
+                width={140}
+                height={50}
+                className="h-12 w-auto object-contain mix-blend-multiply"
+              />
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/60">
               A digital magazine celebrating Islamic culture, art, and
@@ -76,7 +76,7 @@ export default function Footer() {
             © {new Date().getFullYear()} Ahlan Magazine. All rights reserved.
           </p>
           <p className="flex items-center gap-1 text-xs text-white/40">
-            Made with <Heart size={12} className="text-accent" /> for the Ummah
+            Made with <Heart size={12} className="text-primary" /> for the Ummah
           </p>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight, Calendar, Tag } from "lucide-react";
 import type { WPPost } from "@/types";
 
@@ -28,7 +29,7 @@ export default function BlogFeed({ posts }: BlogFeedProps) {
           transition={{ duration: 0.6 }}
           className="mb-12 flex flex-col items-center text-center sm:mb-16"
         >
-          <span className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-accent-dark">
+          <span className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary">
             Fan-Writer Community
           </span>
           <h2 className="font-heading text-3xl font-bold text-heading sm:text-4xl lg:text-5xl">
@@ -58,15 +59,16 @@ export default function BlogFeed({ posts }: BlogFeedProps) {
                   <div
                     className="absolute inset-0 flex items-center justify-center transition-transform duration-500 group-hover:scale-105"
                     style={{
-                      background: `linear-gradient(135deg, ${post.designConfig?.bgColor || "#e8f5e9"} 0%, ${post.designConfig?.accentColor || "#0a5c36"}30 100%)`,
+                      background: `linear-gradient(135deg, ${post.designConfig?.bgColor || "#F1F1F1"} 0%, ${post.designConfig?.accentColor || "#EF273E"}30 100%)`,
                     }}
                   >
-                    <span
-                      className="font-heading text-5xl font-bold opacity-20"
-                      style={{ color: post.designConfig?.accentColor }}
-                    >
-                      أ
-                    </span>
+                    <Image
+                      src="/logo.png"
+                      alt="Ahlan Logo"
+                      width={120}
+                      height={48}
+                      className="opacity-20 grayscale"
+                    />
                   </div>
 
                   {/* Category badge */}

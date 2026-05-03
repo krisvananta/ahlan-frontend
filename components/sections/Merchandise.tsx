@@ -26,7 +26,7 @@ export default function Merchandise() {
           transition={{ duration: 0.6 }}
           className="mb-12 flex flex-col items-center text-center sm:mb-16"
         >
-          <span className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-accent-dark">
+          <span className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary">
             Ahlan Store
           </span>
           <h2 className="font-heading text-3xl font-bold text-heading sm:text-4xl lg:text-5xl">
@@ -79,7 +79,7 @@ export default function Merchandise() {
                 <p className="mt-1 line-clamp-1 text-xs text-muted">
                   {product.description}
                 </p>
-                <p className="mt-2 text-lg font-bold text-accent-dark">
+                <p className="mt-2 text-lg font-bold text-primary">
                   ${product.price}
                 </p>
               </div>

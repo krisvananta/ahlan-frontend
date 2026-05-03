@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Mail, Lock, User, Loader2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
@@ -101,12 +102,16 @@ export default function AuthModal() {
             <div className="relative overflow-hidden gradient-hero px-8 pb-8 pt-10">
               <div className="pattern-overlay pointer-events-none absolute inset-0 opacity-20" />
               <div className="relative">
-                <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
-                  <span className="font-heading text-2xl font-bold text-white">
-                    أ
-                  </span>
+                <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 overflow-hidden p-2">
+                  <Image
+                    src="/logo.png"
+                    alt="Ahlan Logo"
+                    width={32}
+                    height={32}
+                    className="w-full h-auto object-contain"
+                  />
                 </div>
-                <h2 className="font-heading text-2xl font-bold text-white">
+                <h2 className="font-heading text-2xl font-bold !text-white">
                   {view === "login" ? "Welcome Back" : "Join Ahlan"}
                 </h2>
                 <p className="mt-1 text-sm text-white/70">

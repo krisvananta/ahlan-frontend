@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Menu,
   X,
@@ -65,19 +66,15 @@ export default function Navbar() {
     <nav className={navbarClass}>
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-20 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary sm:h-10 sm:w-10">
-            <span className="font-heading text-lg font-bold text-white sm:text-xl">
-              أ
-            </span>
-          </div>
-          <span
-            className={`font-heading text-xl font-bold tracking-wide transition-colors duration-300 sm:text-2xl ${
-              isScrolled ? "text-heading" : "text-white"
-            }`}
-          >
-            Ahlan
-          </span>
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/logo.png"
+            alt="Ahlan Logo"
+            width={120}
+            height={40}
+            className="h-10 w-auto object-contain sm:h-12 mix-blend-multiply"
+            priority
+          />
         </Link>
 
         {/* Desktop Nav */}
@@ -89,9 +86,7 @@ export default function Navbar() {
               onClick={(e) => handleNavClick(e, link.href)}
               className={`relative rounded-lg px-4 py-2 text-sm font-medium transition-all duration-300 ${
                 activeSection === link.sectionId
-                  ? isScrolled
-                    ? "text-primary"
-                    : "text-accent"
+                  ? "text-primary"
                   : isScrolled
                     ? "text-body hover:text-primary"
                     : "text-white/80 hover:text-white"
@@ -119,9 +114,13 @@ export default function Navbar() {
             <div className="relative">
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center gap-2 rounded-full border border-white/20 px-3 py-1.5 text-sm font-medium transition-all hover:border-accent/50"
+                className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition-all ${
+                  isScrolled 
+                    ? "border-cream-dark hover:border-primary/50" 
+                    : "border-white/20 hover:border-white/50"
+                }`}
               >
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-xs font-bold text-white">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
                   {(user?.nickname || user?.name || "U").charAt(0)}
                 </div>
                 <span
@@ -169,7 +168,11 @@ export default function Navbar() {
           ) : (
             <button
               onClick={openAuthModal}
-              className="group flex items-center gap-2 rounded-full border border-accent/60 px-4 py-2 text-sm font-semibold text-accent transition-all duration-300 hover:border-accent hover:bg-accent hover:text-white sm:px-5"
+              className={`group flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-300 sm:px-5 ${
+                isScrolled
+                  ? "border-primary/60 text-primary hover:border-primary hover:bg-primary hover:text-white"
+                  : "border-white/40 text-white hover:border-white hover:bg-white/10"
+              }`}
             >
               <User size={16} />
               <span>Login</span>

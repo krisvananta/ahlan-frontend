@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Calendar, Tag, User, ArrowRight } from "lucide-react";
 import { getPosts } from "@/lib/api";
 
@@ -66,12 +67,13 @@ export default async function BlogPage() {
                     }30 100%)`,
                   }}
                 >
-                  <span
-                    className="font-heading text-8xl font-bold opacity-20"
-                    style={{ color: featuredPost.designConfig?.accentColor }}
-                  >
-                    أ
-                  </span>
+                  <Image
+                    src="/logo.png"
+                    alt="Ahlan Logo"
+                    width={200}
+                    height={80}
+                    className="opacity-20 grayscale"
+                  />
                 </div>
               )}
               {/* Featured Badge */}
@@ -153,12 +155,13 @@ export default async function BlogPage() {
                       }30 100%)`,
                     }}
                   >
-                    <span
-                      className="font-heading text-5xl font-bold opacity-20"
-                      style={{ color: post.designConfig?.accentColor }}
-                    >
-                      أ
-                    </span>
+                    <Image
+                      src="/logo.png"
+                      alt="Ahlan Logo"
+                      width={120}
+                      height={48}
+                      className="opacity-20 grayscale"
+                    />
                   </div>
                 )}
                 {/* Categories overlay */}

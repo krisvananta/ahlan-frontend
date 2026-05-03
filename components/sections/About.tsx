@@ -49,7 +49,7 @@ export default function About() {
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.7 }}
           >
-            <span className="mb-3 inline-block text-xs font-bold uppercase tracking-[0.2em] text-accent-dark">
+            <span className="mb-3 inline-block text-xs font-bold uppercase tracking-[0.2em] text-primary">
               Our Story
             </span>
             <h2 className="font-heading text-3xl font-bold text-heading sm:text-4xl lg:text-5xl">
@@ -79,8 +79,8 @@ export default function About() {
             </div>
 
             {/* Decorative calligraphy */}
-            <div className="mt-8 inline-flex items-center gap-3 rounded-xl border border-accent/20 bg-accent/5 px-5 py-3">
-              <span className="font-heading text-2xl text-accent">بسم الله</span>
+            <div className="mt-8 inline-flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-5 py-3">
+              <span className="font-heading text-2xl text-primary">بسم الله</span>
               <span className="text-xs text-muted">In the name of God</span>
             </div>
           </motion.div>
@@ -93,7 +93,7 @@ export default function About() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
-                className="group rounded-xl border border-cream-dark bg-white p-6 shadow-[var(--shadow-card)] transition-all duration-300 hover:border-accent/30 hover:shadow-[var(--shadow-card-hover)]"
+                className="group rounded-xl border border-cream-dark bg-white p-6 shadow-[var(--shadow-card)] transition-all duration-300 hover:border-primary/30 hover:shadow-[var(--shadow-card-hover)]"
               >
                 <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
                   <value.icon size={20} />
