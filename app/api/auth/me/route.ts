@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchViewer } from "@/lib/api";
+import { jwtVerify } from "jose";
 
 export async function GET(request: Request) {
   try {
@@ -18,28 +19,41 @@ export async function GET(request: Request) {
       );
     }
 
-    // 2. Hydrate session against WordPress server
-    const viewer = await fetchViewer(token);
+    // 2. Verify token cryptographically
+    if (!process.env.JWT_SECRET_KEY) {
+      console.warn("JWT_SECRET_KEY is missing in environment variables.");
+    }
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET_KEY || "");
+    const { payload } = await jwtVerify(token, secret);
 
-    // 3. Rebuild abstract User State
+    // 3. Hydrate session against WordPress server
+    let viewer = null;
+    try {
+      viewer = await fetchViewer(token);
+    } catch (err) {
+      console.error("Failed to fetch viewer during session hydration", err);
+    }
+
+    // 4. Rebuild abstract User State
     const rawRoles = viewer?.roles?.nodes || [];
     const roleMapping = rawRoles.length > 0 ? rawRoles[0].name.toLowerCase() : "subscriber";
 
     const userData = {
-      id: viewer.id,
-      name: viewer.name,
-      nickname: viewer.nickname,
-      email: viewer.email,
+      id: viewer?.id || payload.data?.user?.id,
+      name: viewer?.name || payload.data?.user?.name || "User",
+      nickname: viewer?.nickname || payload.data?.user?.nickname,
+      email: viewer?.email || payload.data?.user?.email,
       role: roleMapping,
       avatar: "https://www.gravatar.com/avatar/?d=mp",
-      has_all_access: viewer.hasAllAccess > 0 || roleMapping === "administrator",
+      has_all_access: !!viewer?.hasAllAccess || roleMapping === "administrator",
     };
 
     return NextResponse.json({
       user: userData,
       token,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    console.error("Session verification failed:", error);
     return NextResponse.json(
       { error: "Session Expired or Invalid" },
       { status: 401 }

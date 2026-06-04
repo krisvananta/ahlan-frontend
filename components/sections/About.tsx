@@ -60,19 +60,19 @@ export default function About() {
             <div className="mt-6 space-y-4 text-sm leading-relaxed text-body sm:text-base">
               <p>
                 <strong className="text-heading">Ahlan</strong> (أهلاً) — Arabic
-                for &ldquo;welcome&rdquo; — was born from a simple belief: that
-                the Muslim world&apos;s stories of creativity, innovation, and
+                for "welcome" — was born from a simple belief: that
+                the Muslim world's stories of creativity, innovation, and
                 faith deserve a platform as beautiful as the content itself.
               </p>
               <p>
-                We&apos;re more than a magazine. We&apos;re a movement of
+                We're more than a magazine. We're a movement of
                 writers, designers, and thinkers who believe that Islamic culture
                 should be represented with the premium quality and modern
                 sensibility it deserves.
               </p>
               <p>
                 From our <strong className="text-heading">Fan-Writer Design Engine</strong>{" "}
-                — where every contributor can customize their article&apos;s
+                — where every contributor can customize their articles
                 look and feel — to our curated digital magazine issues, every
                 pixel is crafted with intention.
               </p>
