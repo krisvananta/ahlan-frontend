@@ -67,12 +67,20 @@ export async function wpQuery<T>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(WP_GRAPHQL_URL, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ query, variables }),
-    next: { revalidate },
-  });
+  let res: Response;
+  try {
+    res = await fetch(WP_GRAPHQL_URL, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ query, variables }),
+      next: { revalidate },
+    });
+  } catch (err: unknown) {
+    throw new WordPressError(
+      `Network error fetching WordPress GraphQL: ${err instanceof Error ? err.message : String(err)}`,
+      503,
+    );
+  }
 
   if (!res.ok) {
     throw new WordPressError(
@@ -374,7 +382,7 @@ export async function getAllArticleSlugs(): Promise<string[]> {
     if (process.env.NODE_ENV === "development") {
       return mockPosts.map((p) => p.slug);
     }
-    return [];
+    throw error;
   }
 }
 
