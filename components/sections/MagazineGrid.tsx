@@ -24,9 +24,10 @@ export default function MagazineGrid() {
   };
 
   const hasAccess = (id: string) => {
-     if (user?.role === "administrator") return true;
-     if (user?.has_all_access) return true;
-     return user?.purchased_magazines?.includes(id) || false;
+    if (!user) return false;
+    if (user.role === "administrator") return true;
+    if (user.has_all_access === true) return true;
+    return user.purchased_magazines?.includes(id) || false;
   };
 
   return (
@@ -85,6 +86,7 @@ export default function MagazineGrid() {
         >
           {mockMagazines.map((mag, i) => {
             const owned = hasAccess(mag.id);
+            console.log(`[MagazineGrid] mag ${mag.id} owned: ${owned}`, { user, has_all_access: user?.has_all_access, purchased: user?.purchased_magazines });
             
             return (
               <motion.div

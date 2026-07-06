@@ -34,8 +34,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
            const res = await fetch("/api/auth/me");
            if (res.ok) {
               const data = await res.json();
+              console.log("[AuthProvider] Hydrated User:", data.user);
               setUser(data.user);
               setToken(data.token);
+           } else {
+              console.log("[AuthProvider] Session hydrate failed with status:", res.status);
+              setUser(null);
+              setToken(null);
            }
         } catch (error) {
            console.error("Session hydration failed", error);

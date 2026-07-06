@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchViewer } from "@/lib/api";
+import { fetchViewer, getUserPurchases } from "@/lib/api";
 import { jwtVerify } from "jose";
 
 export async function GET(request: Request) {
@@ -38,14 +38,18 @@ export async function GET(request: Request) {
     const rawRoles = viewer?.roles?.nodes || [];
     const roleMapping = rawRoles.length > 0 ? rawRoles[0].name.toLowerCase() : "subscriber";
 
+    const hasAllAccess = viewer?.userMembership?.hasAllAccess === true || viewer?.userMembership?.hasAllAccess === "true";
+    const jwtData = payload.data as { user?: Record<string, any> } | undefined;
+
     const userData = {
-      id: viewer?.id || payload.data?.user?.id,
-      name: viewer?.name || payload.data?.user?.name || "User",
-      nickname: viewer?.nickname || payload.data?.user?.nickname,
-      email: viewer?.email || payload.data?.user?.email,
+      id: viewer?.id || jwtData?.user?.id,
+      name: viewer?.name || jwtData?.user?.name || "User",
+      nickname: viewer?.nickname || jwtData?.user?.nickname,
+      email: viewer?.email || jwtData?.user?.email,
       role: roleMapping,
       avatar: "https://www.gravatar.com/avatar/?d=mp",
-      has_all_access: !!viewer?.hasAllAccess || roleMapping === "administrator",
+      has_all_access: hasAllAccess || roleMapping === "administrator",
+      purchased_magazines: (await getUserPurchases()).map((m) => m.id),
     };
 
     return NextResponse.json({

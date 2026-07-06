@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { loginWithGraphQL, fetchViewer } from "@/lib/api";
+import { loginWithGraphQL, fetchViewer, getUserPurchases } from "@/lib/api";
 import { jwtVerify } from "jose";
 
 export async function POST(request: Request) {
@@ -37,14 +37,18 @@ export async function POST(request: Request) {
     const rawRoles = wpUser?.roles?.nodes || [];
     const roleMapping = rawRoles.length > 0 ? rawRoles[0].name.toLowerCase() : "subscriber";
 
+    const hasAllAccess = wpUser?.userMembership?.hasAllAccess === true || wpUser?.userMembership?.hasAllAccess === "true";
+    const jwtData = payload.data as { user?: Record<string, any> } | undefined;
+
     const userData = {
-      id: wpUser?.id || payload.data?.user?.id,
-      name: wpUser?.name || payload.data?.user?.name || "User",
-      nickname: wpUser?.nickname || payload.data?.user?.nickname,
-      email: wpUser?.email || payload.data?.user?.email,
+      id: wpUser?.id || jwtData?.user?.id,
+      name: wpUser?.name || jwtData?.user?.name || "User",
+      nickname: wpUser?.nickname || jwtData?.user?.nickname,
+      email: wpUser?.email || jwtData?.user?.email,
       role: roleMapping,
       avatar: "https://www.gravatar.com/avatar/?d=mp", // Fallback avatar
-      has_all_access: !!wpUser?.hasAllAccess || roleMapping === "administrator",
+      has_all_access: hasAllAccess || roleMapping === "administrator",
+      purchased_magazines: (await getUserPurchases()).map((m) => m.id),
     };
 
     // 4. Build response with HTTP-only cookie

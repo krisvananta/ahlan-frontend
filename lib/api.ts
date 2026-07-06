@@ -536,9 +536,8 @@ export async function getMagazineById(
 /** Fetch user's purchased magazines (requires auth) */
 export async function getUserPurchases(): Promise<WPMagazine[]> {
   // TODO: Implement real purchase check via WooCommerce/custom endpoint
-  // For now, mock first 3 as purchased
-  const magazines = await getMagazines();
-  return magazines.slice(0, 3).map((m) => ({ ...m, isPurchased: true }));
+  // Returning an empty array ensures users only see what they actually own
+  return [];
 }
 
 /** Fetch merchandise products (still using mock data) */
@@ -712,7 +711,9 @@ const LOGIN_MUTATION = `
             name
           }
         }
-        hasAllAccess: databaseId
+        userMembership {
+          hasAllAccess
+        }
       }
     }
   }
@@ -742,7 +743,9 @@ const VIEWER_QUERY = `
           name
         }
       }
-      hasAllAccess: databaseId
+      userMembership {
+        hasAllAccess
+      }
     }
   }
 `;

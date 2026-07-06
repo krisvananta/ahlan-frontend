@@ -25,9 +25,10 @@ export default function LibraryPage() {
 
   // RBAC Access mapping
   const hasAccess = (id: string) => {
-     if (user?.role === "administrator") return true;
-     if (user?.has_all_access) return true;
-     return user?.purchased_magazines?.includes(id) || false;
+    if (!user) return false;
+    if (user.role === "administrator") return true;
+    if (user.has_all_access === true) return true;
+    return user.purchased_magazines?.includes(id) || false;
   };
 
   const purchasedMagazines = mockMagazines.filter(m => hasAccess(m.id));

@@ -19,7 +19,7 @@ import type { WPMagazine } from "@/types";
 export default function MagazineReaderPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { isAuthenticated, openAuthModal } = useAuth();
+  const { user, isAuthenticated, openAuthModal } = useAuth();
   const [magazine, setMagazine] = useState<WPMagazine | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,6 +82,14 @@ export default function MagazineReaderPage() {
     );
   }
 
+  // Access check
+  const hasAccess = () => {
+    if (!user) return false;
+    if (user.role === "administrator") return true;
+    if (user.has_all_access === true) return true;
+    return user.purchased_magazines?.includes(params.id as string) || false;
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--color-dark-bg)] pt-20">
@@ -130,14 +138,31 @@ export default function MagazineReaderPage() {
           </Link>
         </div>
 
-        {/* Secure PDF Viewer */}
+        {/* Secure PDF Viewer or Locked State */}
         <div className="min-h-[70vh]">
-          <SecurePdfViewer
-            magazineId={magazine.id}
-            pdfUrl={magazine.pdfUrl}
-            title={`${magazine.title} — Issue #${magazine.issueNumber}`}
-            onClose={() => router.push("/library")}
-          />
+          {!hasAccess() ? (
+            <div className="flex h-[70vh] flex-col items-center justify-center rounded-2xl bg-[var(--color-dark-surface)] border border-white/10 p-10 text-center shadow-2xl">
+              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-error/10">
+                <AlertTriangle size={32} className="text-error" />
+              </div>
+              <h2 className="font-heading text-2xl font-bold text-white mb-3">
+                Magazine Locked
+              </h2>
+              <p className="max-w-md text-sm text-white/60 mb-8">
+                You do not have access to this magazine. Please purchase it to continue reading.
+              </p>
+              <button className="rounded-xl bg-primary px-8 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-primary-light shadow-[var(--shadow-btn)] hover:shadow-[var(--shadow-btn-hover)]">
+                Buy Now - ${magazine.price}
+              </button>
+            </div>
+          ) : (
+            <SecurePdfViewer
+              magazineId={magazine.id}
+              pdfUrl={magazine.pdfUrl}
+              title={`${magazine.title} — Issue #${magazine.issueNumber}`}
+              onClose={() => router.push("/library")}
+            />
+          )}
         </div>
       </div>
     </div>

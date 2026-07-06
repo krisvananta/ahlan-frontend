@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getMagazineById } from "@/lib/api";
+import { getMagazineById, fetchViewer, getUserPurchases } from "@/lib/api";
+import { jwtVerify } from "jose";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -37,21 +38,40 @@ export async function GET(request: Request, context: RouteContext) {
     }
 
     try {
-       // Decode our Mock JWT payload (or standard JWT data logic)
-       const tokenString = authHeader.split(" ")[1];
-       const payloadBase64 = tokenString.split(".")[1];
-       const userData = JSON.parse(atob(payloadBase64));
+      const tokenString = authHeader.split(" ")[1];
 
-       // Access Logic Check:
-       const isAdmin = userData.role === "administrator";
-       const hasAllAccess = userData.has_all_access === true;
-       const hasPurchased = userData.purchased_magazines?.includes(id);
+      // 1. Verify cryptographic JWT signature
+      if (!process.env.JWT_SECRET_KEY) {
+        console.warn("JWT_SECRET_KEY is missing in environment variables.");
+      }
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET_KEY || "");
+      await jwtVerify(tokenString, secret); // This validates the token isn't forged
 
-       if (!isAdmin && !hasAllAccess && !hasPurchased) {
-          return NextResponse.json({ error: "Access Denied. You do not own this magazine." }, { status: 403 });
-       }
-    } catch (err) {
-       return NextResponse.json({ error: "Invalid Authorization Token" }, { status: 403 });
+      // 2. Hydrate session against WordPress server to get role & metadata
+      const viewer = await fetchViewer(tokenString);
+
+      // 3. Determine roles/access
+      const rawRoles = viewer?.roles?.nodes || [];
+      const roleMapping = rawRoles.length > 0 ? rawRoles[0].name.toLowerCase() : "subscriber";
+      const isAdmin = roleMapping === "administrator";
+      const hasAllAccess = viewer?.userMembership?.hasAllAccess === true || viewer?.userMembership?.hasAllAccess === "true";
+
+      // 4. Check purchased magazines
+      const purchases = await getUserPurchases();
+      const hasPurchased = purchases.some((m) => m.id === id);
+
+      if (!isAdmin && !hasAllAccess && !hasPurchased) {
+        return NextResponse.json(
+          { error: "Access Denied. You do not own this magazine." },
+          { status: 403 }
+        );
+      }
+    } catch (err: unknown) {
+      console.error("PDF Access Error:", err);
+      return NextResponse.json(
+        { error: "Invalid Authorization Token or Insufficient Access" },
+        { status: 403 }
+      );
     }
 
     // In a real WP app, we would verify the token cryptographically here OR proxy the token to WP
