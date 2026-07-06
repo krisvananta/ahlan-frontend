@@ -47,7 +47,7 @@ export async function GET() {
       role: roleMapping,
       avatar: "https://www.gravatar.com/avatar/?d=mp",
       has_all_access: hasAllAccess || roleMapping === "administrator",
-      purchased_magazines: (await getUserPurchases()).map((m) => m.id),
+      purchased_magazines: (await getUserPurchases(token)).map((m) => m.id),
     };
 
     return NextResponse.json({

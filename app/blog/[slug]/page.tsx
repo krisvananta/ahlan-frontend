@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Calendar, User, Tag, Link2 } from "lucide-react";
-import { getPostBySlug, getPosts } from "@/lib/api";
+import { getArticleBySlug, getArticles } from "@/lib/api";
 import { sanitizeHtml } from "@/lib/sanitize";
 import ThemeWrapper from "@/components/article/ThemeWrapper";
 import type { Metadata } from "next";
@@ -16,7 +16,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
+  const post = await getArticleBySlug(slug);
 
   if (!post) return { title: "Post Not Found — Ahlan" };
 
@@ -27,13 +27,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export async function generateStaticParams() {
-  const posts = await getPosts();
+  const posts = await getArticles();
   return posts.map((post) => ({ slug: post.slug }));
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
+  const post = await getArticleBySlug(slug);
 
   if (!post) notFound();
 

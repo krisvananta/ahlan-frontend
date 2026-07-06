@@ -34,7 +34,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const res = await fetch("/api/auth/me");
         if (res.ok) {
           const data = await res.json();
-          console.log("[AuthProvider] Hydrated User:", data.user);
           return {
             user: (data.user as User) || null,
             token: (data.token as string) || null,
@@ -75,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [queryClient]);
 
-  const register = useCallback(async (_creds: RegisterCredentials) => {
+  const register = useCallback(async () => {
     setAuthActionLoading(true);
     try {
       // Typically registers against WP /wp/v2/users, then logs in.

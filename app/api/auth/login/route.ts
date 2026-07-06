@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       role: roleMapping,
       avatar: "https://www.gravatar.com/avatar/?d=mp", // Fallback avatar
       has_all_access: hasAllAccess || roleMapping === "administrator",
-      purchased_magazines: (await getUserPurchases()).map((m) => m.id),
+      purchased_magazines: (await getUserPurchases(authData.authToken)).map((m) => m.id),
     };
 
     // 4. Build response with HTTP-only cookie

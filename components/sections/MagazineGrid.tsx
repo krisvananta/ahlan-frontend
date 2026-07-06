@@ -14,7 +14,7 @@ interface MagazineGridProps {
 }
 
 export default function MagazineGrid({ magazines = [] }: MagazineGridProps) {
-  const { user, hasAccess } = useAccess();
+  const { hasAccess } = useAccess();
   const ref = useRef<HTMLElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -84,7 +84,6 @@ export default function MagazineGrid({ magazines = [] }: MagazineGridProps) {
         >
           {magazines.map((mag, i) => {
             const owned = hasAccess(mag.id);
-            console.log(`[MagazineGrid] mag ${mag.id} owned: ${owned}`, { user, has_all_access: user?.has_all_access, purchased: user?.purchased_magazines });
             
             return (
               <motion.div

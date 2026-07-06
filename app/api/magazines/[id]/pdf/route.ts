@@ -57,7 +57,7 @@ export async function GET(request: Request, context: RouteContext) {
       const hasAllAccess = parseWpHasAllAccess(viewer?.userMembership);
 
       // 4. Check purchased magazines
-      const purchases = await getUserPurchases();
+      const purchases = await getUserPurchases(tokenString);
       const tempUser = {
         id: viewer?.id || "",
         name: viewer?.name || "User",

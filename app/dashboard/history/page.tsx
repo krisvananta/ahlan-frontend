@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { Plus, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
-import { getPosts, getPendingArticles } from "@/lib/api";
+import { getArticles, getPendingArticles } from "@/lib/api";
 import { WPPost } from "@/types";
 import { formatDateID } from "@/lib/format";
 
@@ -16,7 +16,7 @@ export default function HistoryPage() {
     queryFn: async () => {
       if (!token) return [];
       const pending = await getPendingArticles(token);
-      const published = await getPosts(50); // Get latest
+      const published = await getArticles(50); // Get latest
 
       const isMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
       

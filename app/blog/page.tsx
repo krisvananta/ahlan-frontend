@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Calendar, User, ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
-import { getPosts } from "@/lib/api";
+import { getArticles } from "@/lib/api";
 import { formatDateID } from "@/lib/format";
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export const revalidate = 60; // ISR revalidation
 
 export default async function BlogPage() {
-  const posts = await getPosts();
+  const posts = await getArticles();
 
   if (!posts || posts.length === 0) {
     return (
