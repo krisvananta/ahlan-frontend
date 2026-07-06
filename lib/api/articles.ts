@@ -76,12 +76,6 @@ const GET_ARTICLES = `
             name
           }
         }
-        designConfig {
-          bgColor
-          textColor
-          primaryFont
-          decorationType
-        }
       }
     }
   }
@@ -119,12 +113,6 @@ const GET_ARTICLE_BY_SLUG = `
         nodes {
           name
         }
-      }
-      designConfig {
-        bgColor
-        textColor
-        primaryFont
-        decorationType
       }
     }
   }
@@ -171,7 +159,7 @@ export interface WPGraphQLPostNode {
   categories: {
     nodes: Array<{ name: string }>;
   };
-  designConfig: WPDesignConfigRaw | null;
+  designConfig?: WPDesignConfigRaw | null;
 }
 
 interface GetPostsResponse {

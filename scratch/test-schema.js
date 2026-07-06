@@ -1,32 +1,38 @@
-const fetch = require('node-fetch');
-
-const query = `
-  {
-    __type(name: "User") {
-      name
-      fields {
-        name
-        type {
-          name
-          kind
+const GET_MAGAZINE_BY_ID = `
+  query GetMagazineById($id: ID!) {
+    magazine(id: $id, idType: ID) {
+      id
+      slug
+      title
+      date
+      featuredImage {
+        node {
+          sourceUrl
+        }
+      }
+      magazineData {
+        magazinePdf {
+          node {
+            mediaItemUrl
+            databaseId
+          }
         }
       }
     }
   }
 `;
 
-async function testIntrospection() {
+async function testById() {
   try {
     const res = await fetch("http://ahlan-backend.local/graphql", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query })
+      body: JSON.stringify({ query: GET_MAGAZINE_BY_ID, variables: { id: "cG9zdDoyMw==" } })
     });
-    const data = await res.json();
-    console.log(JSON.stringify(data.data.__type.fields.map(f => f.name), null, 2));
+    console.log(JSON.stringify(await res.json(), null, 2));
   } catch (err) {
     console.error(err);
   }
 }
 
-testIntrospection();
+testById();

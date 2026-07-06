@@ -17,20 +17,18 @@ const GET_MAGAZINES = `
         id
         slug
         title
-        excerpt
         date
         featuredImage {
           node {
             sourceUrl
           }
         }
-        magazineFields {
-          issueNumber
-          price
-          pageCount
+        magazineData {
           magazinePdf {
-            mediaItemUrl
-            databaseId
+            node {
+              mediaItemUrl
+              databaseId
+            }
           }
         }
       }
@@ -40,24 +38,22 @@ const GET_MAGAZINES = `
 
 const GET_MAGAZINE_BY_ID = `
   query GetMagazineById($id: ID!) {
-    magazine(id: $id, idType: DATABASE_ID) {
+    magazine(id: $id, idType: ID) {
       id
       slug
       title
-      excerpt
       date
       featuredImage {
         node {
           sourceUrl
         }
       }
-      magazineFields {
-        issueNumber
-        price
-        pageCount
+      magazineData {
         magazinePdf {
-          mediaItemUrl
-          databaseId
+          node {
+            mediaItemUrl
+            databaseId
+          }
         }
       }
     }
@@ -72,18 +68,35 @@ export interface WPGraphQLMagazineNode {
   id: string;
   slug: string;
   title: string;
-  excerpt: string;
+  excerpt?: string;
   date: string;
   featuredImage: {
     node: { sourceUrl: string };
   } | null;
-  magazineFields: {
-    issueNumber: string | null;
-    price: number | null;
-    pageCount: number | null;
-    magazinePdf: {
-      mediaItemUrl: string;
-      databaseId: number;
+  magazineData?: {
+    magazinePdf?: {
+      node?: {
+        mediaItemUrl: string;
+        databaseId: number;
+      };
+      mediaItemUrl?: string;
+      databaseId?: number;
+    } | null;
+    issueNumber?: string | null;
+    price?: number | null;
+    pageCount?: number | null;
+  } | null;
+  magazineFields?: {
+    issueNumber?: string | null;
+    price?: number | null;
+    pageCount?: number | null;
+    magazinePdf?: {
+      mediaItemUrl?: string;
+      databaseId?: number;
+      node?: {
+        mediaItemUrl: string;
+        databaseId: number;
+      };
     } | null;
   } | null;
 }
@@ -101,19 +114,20 @@ interface GetMagazineByIdResponse {
 // ================================
 
 export function transformMagazine(node: WPGraphQLMagazineNode): WPMagazine {
-  const fields = node.magazineFields;
+  const data = node.magazineData || node.magazineFields;
+  const pdfNode = data?.magazinePdf?.node || data?.magazinePdf;
   return {
     id: node.id,
     slug: node.slug,
     title: node.title,
-    description: node.excerpt?.replace(/<\/?[^>]+(>|$)/g, "") || "",
+    description: node.excerpt?.replace(/<\/?[^>]+(>|$)/g, "") || "Digital E-Magazine Issue from Ahlan.",
     coverImage: node.featuredImage?.node.sourceUrl || "/mock/magazine-1.jpg",
-    issueNumber: fields?.issueNumber || "0",
+    issueNumber: data?.issueNumber || "1",
     publishDate: node.date,
-    pdfUrl: fields?.magazinePdf?.mediaItemUrl || "",
-    pdfMediaId: fields?.magazinePdf?.databaseId?.toString(),
-    price: fields?.price || 0,
-    pageCount: fields?.pageCount || undefined,
+    pdfUrl: pdfNode?.mediaItemUrl || "",
+    pdfMediaId: pdfNode?.databaseId?.toString(),
+    price: data?.price || 0,
+    pageCount: data?.pageCount || undefined,
     contentType: "official", // All magazines from WP are Official PDF e-books
   };
 }
@@ -170,20 +184,18 @@ const GET_USER_PURCHASES = `
             id
             slug
             title
-            excerpt
             date
             featuredImage {
               node {
                 sourceUrl
               }
             }
-            magazineFields {
-              issueNumber
-              price
-              pageCount
+            magazineData {
               magazinePdf {
-                mediaItemUrl
-                databaseId
+                node {
+                  mediaItemUrl
+                  databaseId
+                }
               }
             }
           }

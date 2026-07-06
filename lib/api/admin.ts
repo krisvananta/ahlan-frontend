@@ -16,12 +16,7 @@ const SUBMIT_ARTICLE_MUTATION = `
       input: {
         title: $title, 
         content: $content, 
-        status: PENDING,
-        designConfig: {
-          bgColor: $bgColor,
-          textColor: $textColor,
-          primaryFont: $primaryFont
-        }
+        status: PENDING
       }
     ) {
       post {
@@ -48,10 +43,6 @@ const GET_PENDING_ARTICLES = `
             name
             email
           }
-        }
-        designConfig {
-          bgColor
-          textColor
         }
       }
     }
