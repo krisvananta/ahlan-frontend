@@ -21,7 +21,7 @@ export default function Merchandise({ products = [] }: MerchandiseProps) {
       className="relative overflow-hidden bg-white py-[var(--spacing-section)]"
     >
       {/* Subtle pattern */}
-      <div className="pattern-overlay pointer-events-none absolute inset-0 opacity-40" />
+      <div className="pattern-overlay pointer-events-none absolute inset-0 opacity-40" aria-hidden="true" />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}

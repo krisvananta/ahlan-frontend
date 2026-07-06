@@ -35,7 +35,7 @@ export default function MagazineGrid({ magazines = [] }: MagazineGridProps) {
       className="relative overflow-hidden bg-[var(--color-dark-bg)] py-[var(--spacing-section)]"
     >
       {/* Pattern overlay */}
-      <div className="pattern-overlay pointer-events-none absolute inset-0 opacity-20" />
+      <div className="pattern-overlay pointer-events-none absolute inset-0 opacity-20" aria-hidden="true" />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}

@@ -24,10 +24,10 @@ export default function Footer() {
   return (
     <footer className="relative overflow-hidden bg-[var(--color-dark-bg)] text-white/80">
       {/* Geometric pattern overlay */}
-      <div className="pattern-overlay pointer-events-none absolute inset-0 opacity-30" />
+      <div className="pattern-overlay pointer-events-none absolute inset-0 opacity-30" aria-hidden="true" />
 
       {/* Brand accent line */}
-      <div className="h-1 gradient-primary" />
+      <div className="h-1 gradient-primary" aria-hidden="true" />
 
       <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">

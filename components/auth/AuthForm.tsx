@@ -63,7 +63,7 @@ export default function AuthForm({
     <div className="w-full">
       {showHeader && (
         <div className="relative overflow-hidden gradient-hero px-8 pb-8 pt-10">
-          <div className="pattern-overlay pointer-events-none absolute inset-0 opacity-20" />
+          <div className="pattern-overlay pointer-events-none absolute inset-0 opacity-20" aria-hidden="true" />
           <div className="relative">
             <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 overflow-hidden p-2">
               <Image

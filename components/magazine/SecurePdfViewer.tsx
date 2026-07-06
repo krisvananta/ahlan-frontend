@@ -271,7 +271,7 @@ export default function SecurePdfViewer({
            {/* Tiled Watermarks heavily rotated */}
            <div className="absolute inset-[-100%] flex flex-wrap gap-20 items-center justify-center rotate-[-30deg]">
               {Array.from({ length: 40 }).map((_, i) => (
-                <div key={i} className="text-white text-3xl font-bold tracking-widest whitespace-nowrap px-8">
+                <div key={i} className="text-white text-3xl font-bold tracking-widest whitespace-nowrap px-8" aria-hidden="true">
                   AHLAN SECURE VIEWER - {user?.email || "GUEST"}
                 </div>
               ))}

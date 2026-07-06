@@ -10,14 +10,14 @@ export default function HeroSection() {
       className="relative flex min-h-screen items-center overflow-hidden gradient-hero"
     >
       {/* Geometric Pattern Overlay */}
-      <div className="pattern-overlay pointer-events-none absolute inset-0 opacity-20" />
+      <div className="pattern-overlay pointer-events-none absolute inset-0 opacity-20" aria-hidden="true" />
 
       {/* Radial glow */}
-      <div className="pointer-events-none absolute left-1/2 top-1/3 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl" />
+      <div className="pointer-events-none absolute left-1/2 top-1/3 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl" aria-hidden="true" />
 
       {/* Decorative circles */}
-      <div className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full border border-white/5" />
-      <div className="pointer-events-none absolute -bottom-48 -left-48 h-[500px] w-[500px] rounded-full border border-white/5" />
+      <div className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full border border-white/5" aria-hidden="true" />
+      <div className="pointer-events-none absolute -bottom-48 -left-48 h-[500px] w-[500px] rounded-full border border-white/5" aria-hidden="true" />
 
       <div className="relative mx-auto flex max-w-7xl flex-col items-center px-4 py-32 text-center sm:px-6 lg:px-8">
         {/* Badge */}
