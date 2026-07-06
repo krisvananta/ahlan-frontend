@@ -290,7 +290,7 @@ export default function LibraryPage() {
                       </div>
                       <div className="mt-4">
                         <Link
-                          href={`/articles/${post.slug}`}
+                          href={`/blog/${post.slug}`}
                           className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-accent py-2.5 text-xs font-semibold text-white transition-colors hover:bg-accent-light"
                         >
                           <FileText size={14} />

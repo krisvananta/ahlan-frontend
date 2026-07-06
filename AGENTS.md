@@ -70,8 +70,8 @@ ahlan-frontend/
 │   ├── layout.tsx                # Root layout (fonts, providers, Navbar, Footer)
 │   ├── page.tsx                  # Homepage (Server Component, fetches posts + magazines)
 │   ├── globals.css               # Tailwind v4 @theme inline design tokens
-│   ├── blog/                     # Blog listing + [slug] detail pages
-│   ├── articles/[slug]/          # Fan article pages with ThemeWrapper design engine
+│   ├── blog/                     # Blog listing + [slug] detail pages (canonical article engine with ThemeWrapper)
+│   ├── articles/[slug]/          # Redirects to /blog/[slug] for SEO deduplication
 │   ├── library/                  # Full magazine catalog
 │   ├── magazines/[id]/           # Individual magazine reader (gated)
 │   ├── login/                    # Login page

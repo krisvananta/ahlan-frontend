@@ -21,8 +21,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!post) return { title: "Post Not Found — Ahlan" };
 
   return {
-    title: `${post.title} — Ahlan`,
+    title: `${post.title} — Ahlan Magazine`,
     description: post.excerpt,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      type: "article",
+      publishedTime: post.date,
+      authors: [post.author.name],
+      images: post.featuredImage
+        ? [{ url: post.featuredImage.url, alt: post.featuredImage.alt }]
+        : [],
+    },
   };
 }
 
@@ -33,7 +43,42 @@ export async function generateStaticParams() {
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
-  const post = await getArticleBySlug(slug);
+  let post;
+  try {
+    post = await getArticleBySlug(slug);
+  } catch {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-cream pt-20">
+        <div className="mx-4 max-w-md rounded-2xl bg-white p-10 text-center shadow-[var(--shadow-card)]">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-error/10">
+            <span className="text-3xl">⚠️</span>
+          </div>
+          <h1 className="font-heading text-2xl font-bold text-heading">
+            Connection Error
+          </h1>
+          <p className="mt-3 text-sm text-muted">
+            We couldn&apos;t connect to our content server. Please check your
+            connection and try again.
+          </p>
+          <div className="mt-6 flex flex-col gap-3">
+            <Link
+              href="/blog"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-light"
+            >
+              <ArrowLeft size={16} />
+              Back to Blog
+            </Link>
+            <Link
+              href={`/blog/${slug}`}
+              className="text-sm font-medium text-primary transition-colors hover:text-primary-light"
+            >
+              Try Again
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!post) notFound();
 
