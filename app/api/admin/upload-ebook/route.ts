@@ -44,8 +44,9 @@ export async function POST(req: NextRequest) {
       id: data.id,
       url: data.source_url,
     });
-  } catch (error: any) {
-    console.error("Failed to proxy media upload:", error);
-    return NextResponse.json({ error: error.message || "Failed to upload" }, { status: 500 });
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error("Failed to proxy media upload:", err);
+    return NextResponse.json({ error: err?.message || "Failed to upload" }, { status: 500 });
   }
 }

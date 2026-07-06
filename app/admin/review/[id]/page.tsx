@@ -1,11 +1,13 @@
 "use client";
 
-import { use, useEffect, useState, useRef } from "react";
+import { use, useState, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ShieldAlert, ArrowLeft, Check, X, Loader2, UploadCloud, FileText } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { approveArticle, getPendingArticles } from "@/lib/api";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { WPPost } from "@/types";
 import ThemeWrapper from "@/components/article/ThemeWrapper";
 
@@ -14,8 +16,6 @@ export default function ReviewArticleDetail({ params }: { params: Promise<{ id: 
   const router = useRouter();
   const { token, user } = useAuth();
   
-  const [post, setPost] = useState<WPPost | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [reviewNote, setReviewNote] = useState("");
   
@@ -27,33 +27,24 @@ export default function ReviewArticleDetail({ params }: { params: Promise<{ id: 
 
   const isAdmin = user?.role === "administrator" || user?.role === "editor";
 
-  useEffect(() => {
-    async function fetchDetail() {
-      if (!token) return;
-      try {
-        // Find it in the pending queue
-        // A direct GetPostById query logic is better, but doing this for simplicity
-        const queue = await getPendingArticles(token);
-        
-        let found = queue.find((p) => p.id === resolvedParams.id || p.slug === resolvedParams.id);
-        
-        // Mock fallback
-        if (!found && process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true") {
-           const { mockPosts } = await import("@/lib/mock-data");
-           found = { ...mockPosts[0], id: resolvedParams.id, status: "PENDING" } as any;
-        }
-
-        setPost(found || null);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+  const { data: post = null, isLoading: loading } = useQuery({
+    queryKey: ["admin", "pending", "detail", resolvedParams.id, token],
+    queryFn: async () => {
+      if (!token) return null;
+      const queue = await getPendingArticles(token);
+      
+      let found = queue.find((p) => p.id === resolvedParams.id || p.slug === resolvedParams.id);
+      
+      // Mock fallback
+      if (!found && process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true") {
+         const { mockPosts } = await import("@/lib/mock-data");
+         found = { ...mockPosts[0], id: resolvedParams.id } as WPPost;
       }
-    }
-    
-    if (isAdmin) fetchDetail();
-    else setLoading(false);
-  }, [isAdmin, resolvedParams.id, token]);
+
+      return found || null;
+    },
+    enabled: !!isAdmin && !!token,
+  });
 
   const handleFileUpload = async (file: File) => {
     if (!token) return;
@@ -86,9 +77,10 @@ export default function ReviewArticleDetail({ params }: { params: Promise<{ id: 
       const data = await res.json();
       setPdfMediaId(data.id);
       alert("PDF Uploaded Successfully to Media Library!");
-    } catch (err: any) {
-      console.error(err);
-      alert(`Upload failed: ${err.message}`);
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error("An unexpected error occurred");
+      console.error(error);
+      alert(`Upload failed: ${error.message}`);
       setSelectedFile(null);
     } finally {
       setIsUploading(false);
@@ -117,9 +109,10 @@ export default function ReviewArticleDetail({ params }: { params: Promise<{ id: 
       
       alert(`Article successfully marked as ${status}`);
       router.push("/admin/review");
-    } catch (err: any) {
-      console.error(err);
-      alert(`Failed to update status: ${err.message}`);
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error("An unexpected error occurred");
+      console.error(error);
+      alert(`Failed to update status: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -274,7 +267,7 @@ export default function ReviewArticleDetail({ params }: { params: Promise<{ id: 
                 </header>
                 <div 
                   className="prose prose-lg mx-auto w-full max-w-none prose-headings:font-heading prose-headings:font-bold prose-p:font-sans"
-                  dangerouslySetInnerHTML={{ __html: post.content }} 
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }} 
                 />
               </div>
             </ThemeWrapper>

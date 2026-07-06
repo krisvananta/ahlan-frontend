@@ -279,14 +279,14 @@ interface GetAllSlugsResponse {
 // ================================
 
 /** Transform a WPGraphQL post node into our app's WPPost type */
-function transformPost(node: WPGraphQLPostNode): WPPost {
+function transformPost(node: Partial<WPGraphQLPostNode> & Pick<WPGraphQLPostNode, "id" | "slug" | "title" | "content">): WPPost {
   return {
     id: node.id,
     slug: node.slug,
     title: node.title,
-    excerpt: node.excerpt.replace(/<\/?[^>]+(>|$)/g, ""), // strip HTML
+    excerpt: node.excerpt?.replace(/<\/?[^>]+(>|$)/g, "") || "", // strip HTML
     content: node.content,
-    date: node.date,
+    date: node.date || new Date().toISOString(),
     featuredImage: node.featuredImage
       ? {
           url: node.featuredImage.node.sourceUrl,
@@ -296,12 +296,12 @@ function transformPost(node: WPGraphQLPostNode): WPPost {
         }
       : null,
     author: {
-      name: node.author.node.name,
-      avatar: node.author.node.avatar?.url || "/mock/avatar-1.jpg",
-      bio: node.author.node.description,
+      name: node.author?.node.name || "Anonymous",
+      avatar: node.author?.node.avatar?.url || "/mock/avatar-1.jpg",
+      bio: node.author?.node.description,
     },
-    categories: node.categories.nodes.map((c) => c.name),
-    designConfig: normalizeDesignConfig(node.designConfig),
+    categories: node.categories?.nodes.map((c) => c.name) || ["Uncategorized"],
+    designConfig: normalizeDesignConfig(node.designConfig || null),
   };
 }
 
@@ -647,10 +647,8 @@ export async function getPendingArticles(token: string): Promise<WPPost[]> {
     token
   );
 
-  // We map using transformPost (which assumes a more complete graphic payload), 
-  // so we might need a slight variant, but let's safely pass what we have.
   return response.posts.nodes.map(node => ({
-    ...transformPost(node as any),
+    ...transformPost(node),
   }));
 }
 
@@ -680,17 +678,29 @@ export async function approveArticle(
     pdfMediaId?: number;
   },
   token: string,
-) {
+): Promise<{ id: string; status: string }> {
   if (USE_MOCK) return { id: data.id, status: data.status };
 
-  const response = await wpQuery(
+  interface ApproveArticleResponse {
+    updatePost?: {
+      post?: {
+        id: string;
+        status: string;
+      };
+    };
+  }
+
+  const response = await wpQuery<ApproveArticleResponse>(
     UPDATE_ARTICLE_MUTATION,
     data,
     0,
     token
   );
 
-  return response;
+  return {
+    id: response?.updatePost?.post?.id || data.id,
+    status: response?.updatePost?.post?.status || data.status,
+  };
 }
 
 // ================================
@@ -719,16 +729,40 @@ const LOGIN_MUTATION = `
   }
 `;
 
-export async function loginWithGraphQL(username: string, password: string) {
+export interface WPViewerNode {
+  id: string;
+  name: string;
+  nickname?: string;
+  email?: string;
+  roles?: {
+    nodes: Array<{ name: string }>;
+  };
+  userMembership?: {
+    hasAllAccess?: boolean | string | null;
+  };
+}
+
+interface LoginMutationResponse {
+  login?: {
+    authToken?: string;
+    user?: WPViewerNode;
+  };
+}
+
+interface GetViewerResponse {
+  viewer?: WPViewerNode;
+}
+
+export async function loginWithGraphQL(username: string, password: string): Promise<{ authToken: string; user?: WPViewerNode }> {
   // Pass explicit 0 revalidate to ensure no caching on auth keys
-  const res = await wpQuery<any>(
+  const res = await wpQuery<LoginMutationResponse>(
     LOGIN_MUTATION,
     { username, password },
     0
   );
   
   if (!res?.login?.authToken) throw new Error("Invalid Credentials");
-  return res.login;
+  return res.login as { authToken: string; user?: WPViewerNode };
 }
 
 const VIEWER_QUERY = `
@@ -750,8 +784,8 @@ const VIEWER_QUERY = `
   }
 `;
 
-export async function fetchViewer(token: string) {
-  const res = await wpQuery<any>(
+export async function fetchViewer(token: string): Promise<WPViewerNode> {
+  const res = await wpQuery<GetViewerResponse>(
     VIEWER_QUERY,
     {},
     0,

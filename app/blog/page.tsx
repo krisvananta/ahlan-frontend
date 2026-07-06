@@ -1,7 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Calendar, Tag, User, ArrowRight } from "lucide-react";
+import { ArrowLeft, Calendar, User, ArrowRight } from "lucide-react";
+import type { Metadata } from "next";
 import { getPosts } from "@/lib/api";
+import { formatDateID } from "@/lib/format";
+
+export const metadata: Metadata = {
+  title: "Blog & Articles — Ahlan Magazine",
+  description: "Explore essays, stories, and cultural commentary from writers across the Muslim world.",
+};
 
 export const revalidate = 60; // ISR revalidation
 
@@ -50,11 +57,12 @@ export default async function BlogPage() {
             {/* Featured Image - using CSS fallback if no image */}
             <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl md:w-1/2 lg:w-3/5">
               {featuredPost.featuredImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={featuredPost.featuredImage.url}
-                  alt={featuredPost.featuredImage.alt}
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  alt={featuredPost.featuredImage.alt || featuredPost.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 60vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               ) : (
                 <div
@@ -107,7 +115,7 @@ export default async function BlogPage() {
                     </span>
                     <span className="flex items-center gap-1 text-xs text-muted">
                       <Calendar size={12} />
-                      {new Date(featuredPost.date).toLocaleDateString("en-US", {
+                      {formatDateID(featuredPost.date, {
                         month: "short",
                         day: "numeric",
                         year: "numeric",
@@ -138,11 +146,12 @@ export default async function BlogPage() {
               {/* Card Image */}
               <div className="relative aspect-[16/10] overflow-hidden bg-cream-dark">
                 {post.featuredImage ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={post.featuredImage.url}
-                    alt={post.featuredImage.alt}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    alt={post.featuredImage.alt || post.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 ) : (
                   <div
@@ -194,7 +203,7 @@ export default async function BlogPage() {
                       {post.author.name}
                     </span>
                     <span className="block text-[10px] text-muted">
-                      {new Date(post.date).toLocaleDateString("en-US", {
+                      {formatDateID(post.date, {
                         month: "short",
                         day: "numeric",
                         year: "numeric",

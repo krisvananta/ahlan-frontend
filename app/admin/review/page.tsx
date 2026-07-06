@@ -1,47 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { getPendingArticles } from "@/lib/api";
 import { useAuth } from "@/providers/AuthProvider";
 import { WPPost } from "@/types";
 import { Clock, Eye, ShieldAlert } from "lucide-react";
+import { formatDateID } from "@/lib/format";
 
 export default function AdminReviewDashboard() {
   const { token, user } = useAuth();
-  const [pending, setPending] = useState<WPPost[]>([]);
-  const [loading, setLoading] = useState(true);
 
   // We enforce basic admin role checks on client side as an example.
   // Full protection should be enforced natively analyzing token via MW.
   const isAdmin = user?.role === "administrator" || user?.role === "editor";
 
-  useEffect(() => {
-    async function fetchPending() {
-      if (!token) return;
-      try {
-        const data = await getPendingArticles(token);
-        
-        // Mock fallback if active
-        if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true" && data.length === 0) {
-           const { mockPosts } = await import("@/lib/mock-data");
-           setPending([{ ...mockPosts[0], id: "mock-id-123" }]);
-        } else {
-           setPending(data);
-        }
-      } catch (err) {
-        console.error("Failed to load pending articles", err);
-      } finally {
-        setLoading(false);
+  const { data: pending = [], isLoading: loading } = useQuery({
+    queryKey: ["admin", "pending", token],
+    queryFn: async () => {
+      if (!token) return [];
+      const data = await getPendingArticles(token);
+      
+      // Mock fallback if active
+      if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true" && data.length === 0) {
+         const { mockPosts } = await import("@/lib/mock-data");
+         return [{ ...mockPosts[0], id: "mock-id-123" }] as WPPost[];
       }
-    }
-    
-    if (isAdmin) {
-      fetchPending();
-    } else {
-      setLoading(false);
-    }
-  }, [isAdmin, token]);
+      return data;
+    },
+    enabled: !!isAdmin && !!token,
+  });
 
   if (!isAdmin) {
     return (
@@ -104,7 +92,7 @@ export default function AdminReviewDashboard() {
                       {post.author.name}
                     </td>
                     <td className="px-6 py-4">
-                      {post.date ? new Date(post.date).toLocaleDateString() : "Just now"}
+                      {post.date ? formatDateID(post.date) : "Just now"}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Link

@@ -2,14 +2,19 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { ChevronLeft, ChevronRight, Eye, Download, ShoppingCart, LockOpen } from "lucide-react";
-import { mockMagazines } from "@/lib/mock-data";
-import { useAuth } from "@/providers/AuthProvider";
+import { ChevronLeft, ChevronRight, Eye, ShoppingCart, LockOpen } from "lucide-react";
+import { WPMagazine } from "@/types";
 import Link from "next/link";
 import Image from "next/image";
+import { formatIDR, formatDateID } from "@/lib/format";
+import { useAccess } from "@/hooks/useAccess";
 
-export default function MagazineGrid() {
-  const { user } = useAuth();
+interface MagazineGridProps {
+  magazines?: WPMagazine[];
+}
+
+export default function MagazineGrid({ magazines = [] }: MagazineGridProps) {
+  const { user, hasAccess } = useAccess();
   const ref = useRef<HTMLElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -21,13 +26,6 @@ export default function MagazineGrid() {
       left: dir === "left" ? -amount : amount,
       behavior: "smooth",
     });
-  };
-
-  const hasAccess = (id: string) => {
-    if (!user) return false;
-    if (user.role === "administrator") return true;
-    if (user.has_all_access === true) return true;
-    return user.purchased_magazines?.includes(id) || false;
   };
 
   return (
@@ -84,7 +82,7 @@ export default function MagazineGrid() {
           className="scrollbar-hide flex gap-6 overflow-x-auto pb-4"
           style={{ scrollSnapType: "x mandatory" }}
         >
-          {mockMagazines.map((mag, i) => {
+          {magazines.map((mag, i) => {
             const owned = hasAccess(mag.id);
             console.log(`[MagazineGrid] mag ${mag.id} owned: ${owned}`, { user, has_all_access: user?.has_all_access, purchased: user?.purchased_magazines });
             
@@ -128,7 +126,7 @@ export default function MagazineGrid() {
                         ) : (
                           <button className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5 text-xs font-semibold text-white transition-colors hover:bg-primary-light">
                             <ShoppingCart size={14} />
-                            Buy - ${mag.price}
+                            Buy - {formatIDR(mag.price)}
                           </button>
                         )}
                         <button className="flex items-center justify-center rounded-lg border border-white/20 p-2.5 text-white transition-colors hover:bg-white/10" title="Preview Summary">
@@ -141,13 +139,13 @@ export default function MagazineGrid() {
                 {/* Meta */}
                 <div className="mt-4">
                   <p className="text-xs text-white/40">
-                    {new Date(mag.publishDate).toLocaleDateString("en-US", {
+                    {formatDateID(mag.publishDate, {
                       month: "long",
                       year: "numeric",
                     })}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-primary">
-                    ${mag.price}
+                    {formatIDR(mag.price)}
                   </p>
                 </div>
               </div>

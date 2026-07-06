@@ -60,12 +60,12 @@ export default function About() {
             <div className="mt-6 space-y-4 text-sm leading-relaxed text-body sm:text-base">
               <p>
                 <strong className="text-heading">Ahlan</strong> (أهلاً) — Arabic
-                for "welcome" — was born from a simple belief: that
-                the Muslim world's stories of creativity, innovation, and
+                for &ldquo;welcome&rdquo; — was born from a simple belief: that
+                the Muslim world&apos;s stories of creativity, innovation, and
                 faith deserve a platform as beautiful as the content itself.
               </p>
               <p>
-                We're more than a magazine. We're a movement of
+                We&apos;re more than a magazine. We&apos;re a movement of
                 writers, designers, and thinkers who believe that Islamic culture
                 should be represented with the premium quality and modern
                 sensibility it deserves.

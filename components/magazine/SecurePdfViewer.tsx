@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Worker, Viewer, SpecialZoomLevel } from "@react-pdf-viewer/core";
 import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
 import "@react-pdf-viewer/core/lib/styles/index.css";
@@ -25,8 +25,8 @@ import { useAuth } from "@/providers/AuthProvider";
  * 7. Watermark tracking user email/ID
  */
 
-// We use the specific pdf.js worker version that matches the installed pdfjs-dist
-const PDFJS_WORKER_URL = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+// We serve the worker locally from /public to prevent CDN supply-chain attacks (SEC-02)
+const PDFJS_WORKER_URL = "/pdf.worker.min.js";
 
 interface SecurePdfViewerProps {
   /** Magazine ID — used to fetch PDF via secure API route */

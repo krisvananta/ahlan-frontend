@@ -1,9 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Calendar, User, Tag, Link2 } from "lucide-react";
 import { getPostBySlug, getPosts } from "@/lib/api";
+import { sanitizeHtml } from "@/lib/sanitize";
 import ThemeWrapper from "@/components/article/ThemeWrapper";
 import type { Metadata } from "next";
+import { formatDateID } from "@/lib/format";
 
 export const revalidate = 60; // ISR for fast loading
 
@@ -87,7 +90,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm font-medium opacity-80">
             <span className="flex items-center gap-1.5">
               <Calendar size={16} />
-              {new Date(post.date).toLocaleDateString("en-US", {
+              {formatDateID(post.date, {
                 month: "long",
                 day: "numeric",
                 year: "numeric",
@@ -101,12 +104,14 @@ export default async function BlogPostPage({ params }: PageProps) {
 
           {/* Featured Image */}
           {post.featuredImage && (
-            <div className="mt-12 overflow-hidden rounded-2xl shadow-xl">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
+            <div className="relative mt-12 aspect-[21/9] w-full overflow-hidden rounded-2xl shadow-xl">
+              <Image 
                 src={post.featuredImage.url} 
-                alt={post.featuredImage.alt}
-                className="w-full object-cover aspect-[21/9]" 
+                alt={post.featuredImage.alt || post.title}
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover" 
               />
             </div>
           )}
@@ -124,7 +129,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         {/* Enforce serif headings and nice sans-serif body reading experience inside prose */}
         <div 
           className="prose prose-lg mx-auto w-full max-w-none prose-headings:font-heading prose-headings:font-bold prose-p:font-sans prose-a:text-primary"
-          dangerouslySetInnerHTML={{ __html: post.content }} 
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }} 
         />
 
         {/* Share & Author Box */}

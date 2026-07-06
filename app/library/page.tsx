@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useAuth } from "@/providers/AuthProvider";
+import { useAccess } from "@/hooks/useAccess";
 import { mockMagazines } from "@/lib/mock-data";
 import { mockPosts } from "@/lib/mock-data";
 import Link from "next/link";
@@ -20,16 +21,9 @@ import { motion, AnimatePresence } from "framer-motion";
 type LibraryTab = "official" | "fan-made";
 
 export default function LibraryPage() {
-  const { isAuthenticated, user, openAuthModal } = useAuth();
+  const { isAuthenticated, openAuthModal } = useAuth();
+  const { user, hasAccess } = useAccess();
   const [activeTab, setActiveTab] = useState<LibraryTab>("official");
-
-  // RBAC Access mapping
-  const hasAccess = (id: string) => {
-    if (!user) return false;
-    if (user.role === "administrator") return true;
-    if (user.has_all_access === true) return true;
-    return user.purchased_magazines?.includes(id) || false;
-  };
 
   const purchasedMagazines = mockMagazines.filter(m => hasAccess(m.id));
   const fanArticles = mockPosts.slice(0, 4);

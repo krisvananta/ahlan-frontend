@@ -2,8 +2,10 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Calendar, User, Tag } from "lucide-react";
 import { getArticleBySlug, getAllArticleSlugs } from "@/lib/api";
+import { sanitizeHtml } from "@/lib/sanitize";
 import ThemeWrapper from "@/components/article/ThemeWrapper";
 import type { Metadata } from "next";
+import { formatDateID } from "@/lib/format";
 
 // ================================
 // Types
@@ -154,7 +156,7 @@ export default async function ArticlePage({ params }: PageProps) {
           <div className="mt-6 flex flex-wrap items-center gap-4 text-sm opacity-70">
             <span className="flex items-center gap-1.5">
               <Calendar size={14} />
-              {new Date(article.date).toLocaleDateString("en-US", {
+              {formatDateID(article.date, {
                 month: "long",
                 day: "numeric",
                 year: "numeric",
@@ -174,7 +176,7 @@ export default async function ArticlePage({ params }: PageProps) {
         </header>
 
         {/* Article Content (HTML from WordPress) */}
-        <div dangerouslySetInnerHTML={{ __html: article.content }} />
+        <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content) }} />
 
         {/* Author Box */}
         <footer

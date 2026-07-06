@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { fetchViewer, getUserPurchases } from "@/lib/api";
 import { jwtVerify } from "jose";
+import { parseWpHasAllAccess } from "@/lib/access";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    // 1. Grab cookie implicitly attached to the browser's request
-    const cookieHeader = request.headers.get("cookie") || "";
-    // Extremely lightweight manual cookie parser for edge environments
-    const cookies = Object.fromEntries(
-      cookieHeader.split("; ").map((c) => c.split("="))
-    );
-    const token = cookies["auth_token"];
+    // 1. Securely grab HTTP-only cookie using Next.js built-in cookie store (SEC-03)
+    const cookieStore = await cookies();
+    const token = cookieStore.get("auth_token")?.value;
 
     if (!token) {
       return NextResponse.json(
@@ -38,14 +36,14 @@ export async function GET(request: Request) {
     const rawRoles = viewer?.roles?.nodes || [];
     const roleMapping = rawRoles.length > 0 ? rawRoles[0].name.toLowerCase() : "subscriber";
 
-    const hasAllAccess = viewer?.userMembership?.hasAllAccess === true || viewer?.userMembership?.hasAllAccess === "true";
-    const jwtData = payload.data as { user?: Record<string, any> } | undefined;
+    const hasAllAccess = parseWpHasAllAccess(viewer?.userMembership);
+    const jwtData = payload.data as { user?: Record<string, unknown> } | undefined;
 
     const userData = {
-      id: viewer?.id || jwtData?.user?.id,
-      name: viewer?.name || jwtData?.user?.name || "User",
-      nickname: viewer?.nickname || jwtData?.user?.nickname,
-      email: viewer?.email || jwtData?.user?.email,
+      id: viewer?.id || (jwtData?.user?.id ? String(jwtData.user.id) : undefined),
+      name: viewer?.name || (jwtData?.user?.name ? String(jwtData.user.name) : "User"),
+      nickname: viewer?.nickname || (jwtData?.user?.nickname ? String(jwtData.user.nickname) : undefined),
+      email: viewer?.email || (jwtData?.user?.email ? String(jwtData.user.email) : undefined),
       role: roleMapping,
       avatar: "https://www.gravatar.com/avatar/?d=mp",
       has_all_access: hasAllAccess || roleMapping === "administrator",

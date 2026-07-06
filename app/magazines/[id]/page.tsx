@@ -7,6 +7,8 @@ import { ArrowLeft, Loader2, AlertTriangle } from "lucide-react";
 import SecurePdfViewer from "@/components/magazine/SecurePdfViewer";
 import { useAuth } from "@/providers/AuthProvider";
 import type { WPMagazine } from "@/types";
+import { formatIDR } from "@/lib/format";
+import { useAccess } from "@/hooks/useAccess";
 
 /**
  * Magazine Reader Page
@@ -19,7 +21,8 @@ import type { WPMagazine } from "@/types";
 export default function MagazineReaderPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { user, isAuthenticated, openAuthModal } = useAuth();
+  const { isAuthenticated, openAuthModal } = useAuth();
+  const { hasAccess } = useAccess();
   const [magazine, setMagazine] = useState<WPMagazine | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,13 +85,6 @@ export default function MagazineReaderPage() {
     );
   }
 
-  // Access check
-  const hasAccess = () => {
-    if (!user) return false;
-    if (user.role === "administrator") return true;
-    if (user.has_all_access === true) return true;
-    return user.purchased_magazines?.includes(params.id as string) || false;
-  };
 
   if (loading) {
     return (
@@ -140,7 +136,7 @@ export default function MagazineReaderPage() {
 
         {/* Secure PDF Viewer or Locked State */}
         <div className="min-h-[70vh]">
-          {!hasAccess() ? (
+          {!hasAccess(params.id) ? (
             <div className="flex h-[70vh] flex-col items-center justify-center rounded-2xl bg-[var(--color-dark-surface)] border border-white/10 p-10 text-center shadow-2xl">
               <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-error/10">
                 <AlertTriangle size={32} className="text-error" />
@@ -152,7 +148,7 @@ export default function MagazineReaderPage() {
                 You do not have access to this magazine. Please purchase it to continue reading.
               </p>
               <button className="rounded-xl bg-primary px-8 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-primary-light shadow-[var(--shadow-btn)] hover:shadow-[var(--shadow-btn-hover)]">
-                Buy Now - ${magazine.price}
+                Buy Now - {formatIDR(magazine.price)}
               </button>
             </div>
           ) : (

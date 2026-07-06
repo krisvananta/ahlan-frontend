@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getMagazineById, fetchViewer, getUserPurchases } from "@/lib/api";
 import { jwtVerify } from "jose";
+import { hasAccess, parseWpHasAllAccess } from "@/lib/access";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -53,14 +54,19 @@ export async function GET(request: Request, context: RouteContext) {
       // 3. Determine roles/access
       const rawRoles = viewer?.roles?.nodes || [];
       const roleMapping = rawRoles.length > 0 ? rawRoles[0].name.toLowerCase() : "subscriber";
-      const isAdmin = roleMapping === "administrator";
-      const hasAllAccess = viewer?.userMembership?.hasAllAccess === true || viewer?.userMembership?.hasAllAccess === "true";
+      const hasAllAccess = parseWpHasAllAccess(viewer?.userMembership);
 
       // 4. Check purchased magazines
       const purchases = await getUserPurchases();
-      const hasPurchased = purchases.some((m) => m.id === id);
+      const tempUser = {
+        id: viewer?.id || "",
+        name: viewer?.name || "User",
+        role: roleMapping,
+        has_all_access: hasAllAccess || roleMapping === "administrator",
+        purchased_magazines: purchases.map((m) => m.id),
+      };
 
-      if (!isAdmin && !hasAllAccess && !hasPurchased) {
+      if (!hasAccess(tempUser, id)) {
         return NextResponse.json(
           { error: "Access Denied. You do not own this magazine." },
           { status: 403 }

@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, Calendar, Tag } from "lucide-react";
 import type { WPPost } from "@/types";
+import { formatDateID } from "@/lib/format";
 
 interface BlogFeedProps {
   posts: WPPost[];
@@ -94,7 +95,7 @@ export default function BlogFeed({ posts }: BlogFeedProps) {
                   <div className="flex items-center gap-3 text-xs text-muted">
                     <span className="flex items-center gap-1">
                       <Calendar size={12} />
-                      {new Date(post.date).toLocaleDateString("en-US", {
+                      {formatDateID(post.date, {
                         month: "short",
                         day: "numeric",
                       })}

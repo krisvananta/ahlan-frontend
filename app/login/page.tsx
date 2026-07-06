@@ -47,7 +47,7 @@ export default function LoginPage() {
                 type="text"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="bypass or bypass@ahlan.com"
+                placeholder="you@example.com"
                 className="w-full rounded-xl border border-cream-dark bg-cream py-3 pl-10 pr-4 text-sm text-heading outline-none transition-all placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/10"
                 required
               />

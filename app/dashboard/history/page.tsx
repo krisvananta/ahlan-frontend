@@ -1,67 +1,50 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { Plus, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { getPosts, getPendingArticles } from "@/lib/api";
 import { WPPost } from "@/types";
+import { formatDateID } from "@/lib/format";
 
 export default function HistoryPage() {
   const { user, token, isAuthenticated } = useAuth();
-  const [submissions, setSubmissions] = useState<{ post: WPPost; status: string; reviewNote?: string }[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchHistory() {
-      if (!token) return;
-      try {
-        // Fetch both published and pending (in a real WP app, we'd have a specific query for 'my posts')
-        // For demonstration, we aggregate pending articles and published ones.
-        const pending = await getPendingArticles(token);
-        const published = await getPosts(50); // Get latest
+  const { data: submissions = [], isLoading: loading } = useQuery({
+    queryKey: ["dashboard", "history", token, user?.name],
+    queryFn: async () => {
+      if (!token) return [];
+      const pending = await getPendingArticles(token);
+      const published = await getPosts(50); // Get latest
 
-        // Filter out by current user email or name for "my posts" representation
-        // If USE_MOCK is true, just show some dummy data
-        const isMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-        
-        let aggregated = [
-          ...pending.map(p => ({ post: p, status: "PENDING" })),
-          ...published.map(p => ({ post: p, status: "PUBLISHED" }))
-        ];
+      const isMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+      
+      let aggregated: { post: WPPost; status: string; reviewNote?: string }[] = [
+        ...pending.map(p => ({ post: p, status: "PENDING" })),
+        ...published.map(p => ({ post: p, status: "PUBLISHED" }))
+      ];
 
-        if (!isMock && user) {
-           // Basic filter to isolate user's posts.
-           aggregated = aggregated.filter(item => item.post.author.name === user.name);
-        } else if (isMock) {
-           // Emulate mock History
-           aggregated = [
-             {
-               post: { ...published[0], title: "My Awesome Fan Article" },
-               status: "PENDING",
-               reviewNote: "Needs a bit more typography matching, we will review the PDF soon.",
-             },
-             {
-               post: { ...published[1], title: "A history of calligraphy" },
-               status: "PUBLISHED",
-             }
-           ] as any[];
-        }
-
-        setSubmissions(aggregated);
-      } catch (err) {
-        console.error("Failed to fetch history:", err);
-      } finally {
-        setLoading(false);
+      if (!isMock && user) {
+         aggregated = aggregated.filter(item => item.post.author.name === user.name);
+      } else if (isMock) {
+         aggregated = [
+           {
+             post: { ...published[0], title: "My Awesome Fan Article" },
+             status: "PENDING",
+             reviewNote: "Needs a bit more typography matching, we will review the PDF soon.",
+           },
+           {
+             post: { ...published[1], title: "A history of calligraphy" },
+             status: "PUBLISHED",
+           }
+         ] as { post: WPPost; status: string; reviewNote?: string }[];
       }
-    }
 
-    if (isAuthenticated) {
-      fetchHistory();
-    } else {
-      setLoading(false);
-    }
-  }, [isAuthenticated, token, user]);
+      return aggregated;
+    },
+    enabled: !!isAuthenticated && !!token,
+  });
 
   if (!isAuthenticated) {
     return (
@@ -121,9 +104,9 @@ export default function HistoryPage() {
                            <XCircle size={12} /> Rejected
                          </span>
                        )}
-                       <span className="text-xs text-muted">
-                         Submitted {item.post.date ? new Date(item.post.date).toLocaleDateString() : "Recently"}
-                       </span>
+                        <span className="text-xs text-muted">
+                          Submitted {item.post.date ? formatDateID(item.post.date) : "Recently"}
+                        </span>
                     </div>
                     <h3 className="font-heading text-xl font-bold text-heading">
                       {item.post.title || "Untitled Article"}
@@ -146,7 +129,7 @@ export default function HistoryPage() {
                       Note from the Editor:
                     </p>
                     <p className="text-sm italic text-heading opacity-90">
-                      "{item.reviewNote}"
+                      &ldquo;{item.reviewNote}&rdquo;
                     </p>
                   </div>
                 )}

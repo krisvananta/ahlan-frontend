@@ -5,9 +5,9 @@ import {
   useContext,
   useState,
   useCallback,
-  useEffect,
   type ReactNode,
 } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { User, AuthState, LoginCredentials, RegisterCredentials } from "@/types";
 
 interface AuthContextValue extends AuthState {
@@ -22,37 +22,39 @@ interface AuthContextValue extends AuthState {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const [authActionLoading, setAuthActionLoading] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  // Requirement 4: Data Sync - Refresh user data from WP on load
-  useEffect(() => {
-     async function hydrateSession() {
-        try {
-           const res = await fetch("/api/auth/me");
-           if (res.ok) {
-              const data = await res.json();
-              console.log("[AuthProvider] Hydrated User:", data.user);
-              setUser(data.user);
-              setToken(data.token);
-           } else {
-              console.log("[AuthProvider] Session hydrate failed with status:", res.status);
-              setUser(null);
-              setToken(null);
-           }
-        } catch (error) {
-           console.error("Session hydration failed", error);
-        } finally {
-           setIsLoading(false);
+  // Requirement 4: Data Sync - Hydrate session via React Query
+  const { data: sessionData, isLoading: sessionLoading } = useQuery({
+    queryKey: ["auth", "me"],
+    queryFn: async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          console.log("[AuthProvider] Hydrated User:", data.user);
+          return {
+            user: (data.user as User) || null,
+            token: (data.token as string) || null,
+          };
         }
-     }
-     hydrateSession();
-  }, []);
+      } catch (error) {
+        console.error("Session hydration failed", error);
+      }
+      return { user: null, token: null };
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    retry: false,
+  });
+
+  const user = sessionData?.user || null;
+  const token = sessionData?.token || null;
+  const isLoading = sessionLoading || authActionLoading;
 
   const login = useCallback(async (creds: LoginCredentials) => {
-    setIsLoading(true);
+    setAuthActionLoading(true);
     try {
       const res = await fetch("/api/auth/login", {
          method: "POST",
@@ -63,19 +65,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Login Failed");
       
-      setUser(data.user);
-      setToken(data.token);
+      queryClient.setQueryData(["auth", "me"], { user: data.user, token: data.token });
       setIsAuthModalOpen(false);
     } catch (error) {
        console.error(error);
        throw error;
     } finally {
-      setIsLoading(false);
+      setAuthActionLoading(false);
     }
-  }, []);
+  }, [queryClient]);
 
-  const register = useCallback(async (creds: RegisterCredentials) => {
-    setIsLoading(true);
+  const register = useCallback(async (_creds: RegisterCredentials) => {
+    setAuthActionLoading(true);
     try {
       // Typically registers against WP /wp/v2/users, then logs in.
       // For now we assume register might hit a mock or backend endpoint safely.
@@ -83,18 +84,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // If no register proxy is wired, throw an error.
       throw new Error("Registration endpoint is currently restricted to Administrators.");
     } finally {
-      setIsLoading(false);
+      setAuthActionLoading(false);
     }
   }, []);
 
   const logout = useCallback(async () => {
+    setAuthActionLoading(true);
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } finally {
-      setUser(null);
-      setToken(null);
+      queryClient.setQueryData(["auth", "me"], { user: null, token: null });
+      setAuthActionLoading(false);
     }
-  }, []);
+  }, [queryClient]);
 
   const openAuthModal = useCallback(() => setIsAuthModalOpen(true), []);
   const closeAuthModal = useCallback(() => setIsAuthModalOpen(false), []);

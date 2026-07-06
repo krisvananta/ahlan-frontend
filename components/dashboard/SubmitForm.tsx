@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, ChevronLeft, ChevronRight, Loader2, Send } from "lucide-react";
 import TipTapEditor from "./TipTapEditor";
 import { submitFanArticle } from "@/lib/api";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { useAuth } from "@/providers/AuthProvider";
 
 interface SubmitFormData {
@@ -50,7 +51,7 @@ export default function SubmitForm() {
     onSuccess: () => {
       setIsSuccess(true);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error("Submission failed:", error);
       alert(`Submission failed: ${error.message || "Please try again."}`);
     },
@@ -260,9 +261,10 @@ export default function SubmitForm() {
                   <div
                     className="line-clamp-4 text-sm opacity-80"
                     dangerouslySetInnerHTML={{
-                      __html:
+                      __html: sanitizeHtml(
                         formData.content ||
-                        "Preview how your paragraphs will look in the final renderer depending on the constraints...",
+                          "Preview how your paragraphs will look in the final renderer depending on the constraints...",
+                      ),
                     }}
                   />
                   <div className="mt-8 flex gap-2">

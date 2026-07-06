@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { loginWithGraphQL, fetchViewer, getUserPurchases } from "@/lib/api";
 import { jwtVerify } from "jose";
+import { parseWpHasAllAccess } from "@/lib/access";
 
 export async function POST(request: Request) {
   try {
@@ -37,14 +38,14 @@ export async function POST(request: Request) {
     const rawRoles = wpUser?.roles?.nodes || [];
     const roleMapping = rawRoles.length > 0 ? rawRoles[0].name.toLowerCase() : "subscriber";
 
-    const hasAllAccess = wpUser?.userMembership?.hasAllAccess === true || wpUser?.userMembership?.hasAllAccess === "true";
-    const jwtData = payload.data as { user?: Record<string, any> } | undefined;
+    const hasAllAccess = parseWpHasAllAccess(wpUser?.userMembership);
+    const jwtData = payload.data as { user?: Record<string, unknown> } | undefined;
 
     const userData = {
-      id: wpUser?.id || jwtData?.user?.id,
-      name: wpUser?.name || jwtData?.user?.name || "User",
-      nickname: wpUser?.nickname || jwtData?.user?.nickname,
-      email: wpUser?.email || jwtData?.user?.email,
+      id: wpUser?.id || (jwtData?.user?.id ? String(jwtData.user.id) : undefined),
+      name: wpUser?.name || (jwtData?.user?.name ? String(jwtData.user.name) : "User"),
+      nickname: wpUser?.nickname || (jwtData?.user?.nickname ? String(jwtData.user.nickname) : undefined),
+      email: wpUser?.email || (jwtData?.user?.email ? String(jwtData.user.email) : undefined),
       role: roleMapping,
       avatar: "https://www.gravatar.com/avatar/?d=mp", // Fallback avatar
       has_all_access: hasAllAccess || roleMapping === "administrator",

@@ -3,9 +3,14 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { ShoppingBag, ArrowUpRight } from "lucide-react";
-import { mockProducts } from "@/lib/mock-data";
+import { WPProduct } from "@/types";
+import { formatIDR } from "@/lib/format";
 
-export default function Merchandise() {
+interface MerchandiseProps {
+  products?: WPProduct[];
+}
+
+export default function Merchandise({ products = [] }: MerchandiseProps) {
   const ref = useRef<HTMLElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -41,7 +46,7 @@ export default function Merchandise() {
 
         {/* Product Grid */}
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {mockProducts.map((product, i) => (
+          {products.map((product, i) => (
             <motion.div
               key={product.id}
               initial={{ opacity: 0, y: 40 }}
@@ -80,7 +85,7 @@ export default function Merchandise() {
                   {product.description}
                 </p>
                 <p className="mt-2 text-lg font-bold text-primary">
-                  ${product.price}
+                  {formatIDR(product.price)}
                 </p>
               </div>
             </motion.div>
