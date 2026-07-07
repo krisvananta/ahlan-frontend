@@ -208,7 +208,7 @@ export default function SecurePdfViewer({
   return (
     <div
       onContextMenu={handleContextMenu}
-      className="secure-pdf-viewer relative flex h-[80vh] flex-col overflow-hidden rounded-2xl bg-[var(--color-dark-bg)] shadow-[var(--shadow-modal)]"
+      className="secure-pdf-viewer relative flex h-[100dvh] sm:h-[85vh] flex-col overflow-hidden rounded-2xl bg-[var(--color-dark-bg)] shadow-[var(--shadow-modal)]"
     >
       {/* Anti-print and Anti-select CSS */}
       <style
@@ -283,8 +283,6 @@ export default function SecurePdfViewer({
            </div>
         </div>
 
-        {/* Transparent Click-Stealer Overlay */}
-        <div className="absolute inset-0 z-10 bg-transparent" aria-hidden="true" onContextMenu={handleContextMenu} />
 
         {blobUrl && (
           <div className="h-full w-full relative z-0">
