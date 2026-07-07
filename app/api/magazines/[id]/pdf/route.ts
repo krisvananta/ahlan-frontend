@@ -10,20 +10,26 @@ interface RouteContext {
 /**
  * Secure PDF proxy endpoint.
  *
- * Fetches the PDF from WordPress and streams it as a blob.
- * This prevents the client from ever seeing the direct WP media URL.
+ * Returns the PDF as a **Base64-encoded JSON payload** instead of raw binary.
+ * This is the industry-standard technique to prevent Internet Download Manager
+ * (IDM) and similar browser extensions from intercepting the response.
  *
- * In production:
- * - Verify auth token (JWT) before serving
- * - Verify the user has purchased this magazine
- * - Set proper cache headers
+ * IDM hooks into the browser's network layer and hijacks any request that looks
+ * like a file download (binary content types, file extensions in URL, etc.).
+ * By returning `application/json` containing a Base64 string, the response is
+ * invisible to IDM — it just looks like a normal API data call.
+ *
+ * The client decodes Base64 → Uint8Array → Blob → blob: URL → PDF.js viewer.
+ *
+ * Uses POST method as an additional layer of defence (IDM primarily targets GET).
  */
-export async function GET(request: Request, context: RouteContext) {
+export async function POST(request: Request, context: RouteContext) {
   const { id } = await context.params;
+  const decodedId = decodeURIComponent(id);
 
   try {
     // 1. Fetch magazine metadata to get the PDF URL
-    const magazine = await getMagazineById(id);
+    const magazine = await getMagazineById(decodedId);
 
     if (!magazine || !magazine.pdfUrl) {
       return NextResponse.json(
@@ -32,31 +38,45 @@ export async function GET(request: Request, context: RouteContext) {
       );
     }
 
-    // Auth check — verify JWT from headers
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader) {
+    // 2. Extract auth token from JSON body (primary) or Authorization header (fallback)
+    let tokenString: string | undefined;
+    try {
+      const body = await request.json();
+      tokenString = body?.token;
+    } catch {
+      // fall through
+    }
+
+    if (!tokenString) {
+      const authHeader = request.headers.get("authorization");
+      if (authHeader) {
+        tokenString = authHeader.split(" ")[1];
+      }
+    }
+
+    if (!tokenString) {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
+    // 3. Verify access
     try {
-      const tokenString = authHeader.split(" ")[1];
-
-      // 1. Verify cryptographic JWT signature
-      if (!process.env.JWT_SECRET_KEY) {
-        console.warn("JWT_SECRET_KEY is missing in environment variables.");
+      // Verify JWT signature if secret is configured
+      try {
+        if (process.env.JWT_SECRET_KEY) {
+          const secret = new TextEncoder().encode(process.env.JWT_SECRET_KEY);
+          await jwtVerify(tokenString, secret);
+        }
+      } catch (jwtErr) {
+        console.warn("[PDF Proxy] Local JWT signature check failed. Verifying session with WordPress server...", jwtErr);
       }
-      const secret = new TextEncoder().encode(process.env.JWT_SECRET_KEY || "");
-      await jwtVerify(tokenString, secret); // This validates the token isn't forged
 
-      // 2. Hydrate session against WordPress server to get role & metadata
+      // Hydrate session against WordPress
       const viewer = await fetchViewer(tokenString);
 
-      // 3. Determine roles/access
       const rawRoles = viewer?.roles?.nodes || [];
       const roleMapping = rawRoles.length > 0 ? rawRoles[0].name.toLowerCase() : "subscriber";
       const hasAllAccess = parseWpHasAllAccess(viewer?.userMembership);
 
-      // 4. Check purchased magazines
       const purchases = await getUserPurchases(tokenString);
       const tempUser = {
         id: viewer?.id || "",
@@ -66,7 +86,7 @@ export async function GET(request: Request, context: RouteContext) {
         purchased_magazines: purchases.map((m) => m.id),
       };
 
-      if (!hasAccess(tempUser, id)) {
+      if (!hasAccess(tempUser, decodedId)) {
         return NextResponse.json(
           { error: "Access Denied. You do not own this magazine." },
           { status: 403 }
@@ -80,39 +100,36 @@ export async function GET(request: Request, context: RouteContext) {
       );
     }
 
-    // In a real WP app, we would verify the token cryptographically here OR proxy the token to WP
-    // For now, we will forward the token to WordPress directly during the fetch!
-    
-    // 2. Fetch the PDF from WordPress
+    // 4. Fetch the PDF from WordPress (static media file — no auth needed)
     const pdfResponse = await fetch(magazine.pdfUrl, {
-      headers: {
-        Accept: "application/pdf",
-        Authorization: authHeader,
-      },
+      headers: { Accept: "application/pdf" },
     });
 
     if (!pdfResponse.ok) {
+      console.error(`[PDF Proxy] Failed to fetch PDF from WP: ${magazine.pdfUrl} (status: ${pdfResponse.status})`);
       return NextResponse.json(
-        { error: "Failed to fetch PDF from source" },
+        { error: `Failed to fetch PDF from source (${pdfResponse.status})` },
         { status: 502 },
       );
     }
 
+    // 5. Encode as Base64 and return inside JSON envelope.
+    //    This makes the response invisible to IDM — it's just "application/json".
     const pdfBuffer = await pdfResponse.arrayBuffer();
+    const base64 = Buffer.from(pdfBuffer).toString("base64");
 
-    // 3. Return as blob with security headers
-    return new NextResponse(pdfBuffer, {
-      status: 200,
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": "inline", // Never "attachment" — prevents download prompt
-        "Cache-Control": "private, no-store, no-cache, must-revalidate",
-        "X-Content-Type-Options": "nosniff",
-        // Prevent embedding in iframes from other origins
-        "X-Frame-Options": "SAMEORIGIN",
-        "Content-Security-Policy": "frame-ancestors 'self'",
+    return NextResponse.json(
+      { data: base64 },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "private, no-store, no-cache, must-revalidate",
+          "X-Content-Type-Options": "nosniff",
+          "X-Frame-Options": "SAMEORIGIN",
+          "Content-Security-Policy": "frame-ancestors 'self'",
+        },
       },
-    });
+    );
   } catch {
     return NextResponse.json(
       { error: "Internal server error" },

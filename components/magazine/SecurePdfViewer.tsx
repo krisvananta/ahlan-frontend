@@ -121,12 +121,14 @@ export default function SecurePdfViewer({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Fetch PDF as blob via secure API route
+  // Fetch PDF as Base64-encoded JSON via secure API route.
+  // The server returns { data: "<base64>" } as application/json — this is invisible
+  // to IDM because IDM never intercepts JSON API responses.
   useEffect(() => {
     let objectUrl: string | null = null;
 
     async function fetchPdf() {
-      if (!token && !pdfUrl) {
+      if (!token) {
          setError("Authentication required to view this magazine.");
          setLoading(false);
          return;
@@ -136,33 +138,36 @@ export default function SecurePdfViewer({
       setError(null);
 
       try {
-        const headers: Record<string, string> = {};
-        if (token) headers["Authorization"] = `Bearer ${token}`;
-
-        const res = await fetch(`/api/magazines/${magazineId}/pdf`, {
-          headers
+        const res = await fetch(`/api/magazines/${encodeURIComponent(magazineId)}/pdf`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
         });
 
         if (!res.ok) {
-          if (pdfUrl) {
-            setBlobUrl(pdfUrl);
-            setLoading(false);
-            return;
-          }
-          throw new Error(`Failed to load PDF (${res.status})`);
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || `Failed to load PDF (${res.status})`);
         }
 
-        const blob = await res.blob();
+        // Server returns JSON: { data: "<base64-encoded-pdf>" }
+        const json = await res.json();
+        if (!json.data) {
+          throw new Error("Empty PDF response from server");
+        }
+
+        // Decode Base64 → binary → Blob → object URL for PDF.js
+        const binaryString = atob(json.data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: "application/pdf" });
         objectUrl = URL.createObjectURL(blob);
         setBlobUrl(objectUrl);
       } catch (err) {
-        if (pdfUrl) {
-          setBlobUrl(pdfUrl);
-        } else {
-          setError(
-            err instanceof Error ? err.message : "Failed to load magazine",
-          );
-        }
+        setError(
+          err instanceof Error ? err.message : "Failed to load magazine",
+        );
       } finally {
         setLoading(false);
       }
