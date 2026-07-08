@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { ChevronLeft, ChevronRight, Eye, ShoppingCart, LockOpen } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, ShoppingCart, LockOpen, ArrowUpRight } from "lucide-react";
 import { WPMagazine } from "@/types";
 import Link from "next/link";
 import Image from "next/image";
@@ -94,7 +94,10 @@ export default function MagazineGrid({ magazines = [] }: MagazineGridProps) {
                 className="group flex-shrink-0"
                 style={{ scrollSnapAlign: "start" }}
               >
-                <div className="relative w-56 sm:w-64">
+                <Link
+                  href={`/magazines/${mag.id}`}
+                  className="block w-56 sm:w-64"
+                >
                   {/* Cover */}
                   <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-[var(--color-dark-surface)] shadow-lg transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-primary/10">
                     {/* Placeholder cover with gradient */}
@@ -114,44 +117,79 @@ export default function MagazineGrid({ magazines = [] }: MagazineGridProps) {
                       </p>
                     </div>
 
+                    {/* Purchased badge */}
+                    {owned && (
+                      <div className="absolute right-3 top-3 rounded-full bg-success px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-md">
+                        Purchased
+                      </div>
+                    )}
+
                     {/* Hover overlay */}
                     <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/80 via-transparent to-transparent p-5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                       <div className="flex w-full gap-2">
                         {owned ? (
-                          <Link href="/library" className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-green-600/90 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-green-500">
+                          <div className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-green-600/90 py-2.5 text-xs font-semibold text-white transition-colors group-hover:bg-green-500">
                             <LockOpen size={14} />
                             Read Now
-                          </Link>
+                          </div>
                         ) : (
-                          <button className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5 text-xs font-semibold text-white transition-colors hover:bg-primary-light">
+                          <div className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5 text-xs font-semibold text-white transition-colors group-hover:bg-primary-light">
                             <ShoppingCart size={14} />
                             Buy - {formatIDR(mag.price)}
-                          </button>
+                          </div>
                         )}
-                        <button className="flex items-center justify-center rounded-lg border border-white/20 p-2.5 text-white transition-colors hover:bg-white/10" title="Preview Summary">
+                        <div className="flex items-center justify-center rounded-lg border border-white/20 p-2.5 text-white transition-colors group-hover:bg-white/10" title="Preview Summary">
                           <Eye size={14} />
-                        </button>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                {/* Meta */}
-                <div className="mt-4">
-                  <p className="text-xs text-white/40">
-                    {formatDateID(mag.publishDate, {
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </p>
-                  <p className="mt-1 text-sm font-semibold text-primary">
-                    {formatIDR(mag.price)}
-                  </p>
-                </div>
-              </div>
-            </motion.div>
+                  {/* Meta */}
+                  <div className="mt-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-white/40">
+                        {formatDateID(mag.publishDate, {
+                          month: "long",
+                          year: "numeric",
+                        })}
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-primary">
+                        {owned ? (
+                          <span className="text-green-400">Purchased</span>
+                        ) : (
+                          formatIDR(mag.price)
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-white/60 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
+                      <ArrowUpRight size={16} />
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
             );
           })}
         </div>
+
+        {/* View All CTA */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="mt-12 text-center"
+        >
+          <Link
+            href="/library"
+            className="group inline-flex items-center gap-2 rounded-full border-2 border-primary px-8 py-3.5 text-sm font-bold uppercase tracking-wider text-primary transition-all hover:bg-primary hover:text-white shadow-[var(--shadow-btn)] hover:shadow-[var(--shadow-btn-hover)]"
+          >
+            See All Issues
+            <ArrowUpRight
+              size={16}
+              className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+            />
+          </Link>
+        </motion.div>
       </div>
     </section>
   );
