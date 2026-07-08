@@ -71,9 +71,26 @@ export async function POST(request: Request) {
     return response;
   } catch (error: unknown) {
     console.error("Login Error:", error);
-    const err = error as Error;
+    const rawMessage = (error as Error)?.message || "";
+
+    // Map raw WordPress/GraphQL error messages to clean, user-friendly text.
+    // WP returns HTML-laden strings like '<strong>Error:</strong> The password...'
+    // which must never be exposed to the frontend.
+    let userMessage = "Email atau password salah. Silakan coba lagi.";
+
+    const lower = rawMessage.toLowerCase();
+    if (lower.includes("password") && lower.includes("incorrect")) {
+      userMessage = "Password yang Anda masukkan salah. Silakan coba lagi.";
+    } else if (lower.includes("unknown email") || lower.includes("unknown username") || lower.includes("not registered") || lower.includes("invalid username")) {
+      userMessage = "Akun dengan email tersebut tidak ditemukan.";
+    } else if (lower.includes("too many") || lower.includes("rate limit")) {
+      userMessage = "Terlalu banyak percobaan login. Silakan tunggu beberapa menit.";
+    } else if (lower.includes("jwt") || lower.includes("token")) {
+      userMessage = "Terjadi masalah autentikasi server. Silakan coba lagi nanti.";
+    }
+
     return NextResponse.json(
-      { error: err?.message || "Invalid credentials" },
+      { error: userMessage },
       { status: 401 },
     );
   }
