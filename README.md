@@ -72,6 +72,32 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to view the application.
 
+### 4. Run Global Production Server (Accessible From Anywhere)
+To host the application from a local Windows machine and make it securely accessible **from anywhere in the world and on any device** over the internet (without requiring router port forwarding or static IPs), we use **PM2** and **Cloudflare Tunnel (`cloudflared`)**:
+
+1. **Start the Server & Tunnel**:
+   ```bash
+   pm2 start ecosystem.config.js
+   ```
+2. **Find Your Worldwide Public URL**:
+   Wait ~5 seconds after starting, then run:
+   ```powershell
+   Get-Content C:\Users\afifk\.pm2\logs\ahlan-tunnel-*.log | Select-String "trycloudflare"
+   ```
+   *(Or view live streaming logs with `pm2 logs ahlan-tunnel`).*
+3. **Check Server Status**:
+   ```bash
+   pm2 status
+   ```
+4. **Stop Server & Tunnel**:
+   ```bash
+   pm2 stop all
+   ```
+5. **Restart Server & Tunnel**:
+   ```bash
+   pm2 restart all
+   ```
+
 ---
 
 ## 📐 Architecture & Project Structure
