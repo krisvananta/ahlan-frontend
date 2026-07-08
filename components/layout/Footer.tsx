@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { Heart } from "lucide-react";
 
 const footerLinks = {
@@ -21,6 +24,11 @@ const footerLinks = {
 };
 
 export default function Footer() {
+  const pathname = usePathname();
+  if (pathname?.startsWith("/magazines/")) {
+    return null;
+  }
+
   return (
     <footer className="relative overflow-hidden bg-[var(--color-dark-bg)] text-white/80">
       {/* Geometric pattern overlay */}

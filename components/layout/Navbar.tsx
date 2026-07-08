@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -27,6 +28,7 @@ const NAV_LINKS: NavLink[] = [
 const SECTION_IDS = NAV_LINKS.map((l) => l.sectionId);
 
 export default function Navbar() {
+  const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -83,6 +85,10 @@ export default function Navbar() {
       }`,
     [isScrolled],
   );
+
+  if (pathname?.startsWith("/magazines/")) {
+    return null;
+  }
 
   return (
     <nav className={navbarClass}>

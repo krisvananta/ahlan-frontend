@@ -8,7 +8,7 @@ import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import {
   Loader2,
   AlertTriangle,
-  X,
+  ArrowLeft,
 } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 
@@ -19,7 +19,7 @@ import { useAuth } from "@/providers/AuthProvider";
  * 1. Blob fetching — PDF loaded via server-side API route, never exposing the WP media URL
  * 2. Disabled print — CSS @media print hides content & Keyboard event interceptors
  * 3. Disabled right-click — prevents "Save As" context menu
- * 4. Custom toolbar from default-layout without download/print options
+ * 4. Custom toolbar removed for 100% distraction-free immersive reading
  * 5. Text selection disabled via CSS
  * 6. Glass Overlay prevents inspector/click drag
  * 7. Watermark tracking user email/ID
@@ -51,62 +51,19 @@ export default function SecurePdfViewer({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize the default layout plugin with custom toolbar (excluding download/print)
+  // Lock background body scroll when in immersive reader mode
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
+  // Initialize the default layout plugin with toolbar and sidebar disabled for clean distraction-free view
   const defaultLayoutPluginInstance = defaultLayoutPlugin({
     sidebarTabs: () => [], // Disable sidebar
-    renderToolbar: (Toolbar) => (
-      <Toolbar>
-        {(slots) => {
-          const {
-            CurrentPageInput,
-            GoToNextPage,
-            GoToPreviousPage,
-            NumberOfPages,
-            ZoomIn,
-            ZoomOut,
-            Zoom,
-            EnterFullScreen,
-          } = slots;
-          return (
-            <div className="flex w-full items-center justify-between px-4 py-2 border-b border-white/10 z-20 relative bg-[#1a1a2e]">
-              <div className="flex items-center gap-4">
-                {onClose && (
-                  <button
-                    onClick={onClose}
-                    className="flex items-center justify-center rounded-lg p-2 text-white/70 hover:bg-white/10 hover:text-white"
-                  >
-                    <X size={20} />
-                  </button>
-                )}
-                <div className="hidden font-semibold text-white sm:block">
-                  {title}
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-white/80">
-                <div className="flex items-center gap-1">
-                  <GoToPreviousPage />
-                  <div className="flex items-center gap-2 px-2">
-                    <CurrentPageInput />
-                    <span className="text-sm">/ <NumberOfPages /></span>
-                  </div>
-                  <GoToNextPage />
-                </div>
-                <div className="mx-2 h-6 w-px bg-white/20" />
-                <div className="flex items-center gap-1">
-                  <ZoomOut />
-                  <Zoom />
-                  <ZoomIn />
-                </div>
-                <div className="mx-2 h-6 w-px bg-white/20" />
-                <div className="flex items-center">
-                  <EnterFullScreen />
-                </div>
-              </div>
-            </div>
-          );
-        }}
-      </Toolbar>
-    ),
+    renderToolbar: () => <></>, // Remove top toolbar completely
   });
 
   // Global Key Listener to block Ctrl+P and Ctrl+S
@@ -121,62 +78,74 @@ export default function SecurePdfViewer({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Fetch PDF as Base64-encoded JSON via secure API route.
-  // The server returns { data: "<base64>" } as application/json — this is invisible
-  // to IDM because IDM never intercepts JSON API responses.
+  // Fetch the PDF via authenticated API proxy route
   useEffect(() => {
-    let objectUrl: string | null = null;
+    let isMounted = true;
+    let createdBlobUrl: string | null = null;
 
-    async function fetchPdf() {
-      if (!token) {
-         setError("Authentication required to view this magazine.");
-         setLoading(false);
-         return;
-      }
-      
+    async function fetchPdfBlob() {
       setLoading(true);
       setError(null);
 
       try {
-        const res = await fetch(`/api/magazines/${encodeURIComponent(magazineId)}/pdf`, {
+        const res = await fetch(`/api/magazines/${magazineId}/pdf`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            // Send auth token in header as fallback/supplement to HTTP-Only cookie
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
           body: JSON.stringify({ token }),
         });
 
         if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error || `Failed to load PDF (${res.status})`);
+          // Try to read error as JSON for a friendly message
+          let errorMsg = `Failed to load magazine (HTTP ${res.status})`;
+          try {
+            const errData = await res.json();
+            if (errData.error) errorMsg = errData.error;
+          } catch {
+            // response wasn't JSON, use default message
+          }
+          throw new Error(errorMsg);
         }
 
-        // Server returns JSON: { data: "<base64-encoded-pdf>" }
-        const json = await res.json();
-        if (!json.data) {
-          throw new Error("Empty PDF response from server");
+        // Response is raw binary PDF (application/octet-stream)
+        const pdfArrayBuffer = await res.arrayBuffer();
+        if (!pdfArrayBuffer || pdfArrayBuffer.byteLength === 0) {
+          throw new Error("Empty PDF data received from server.");
         }
 
-        // Decode Base64 → binary → Blob → object URL for PDF.js
-        const binaryString = atob(json.data);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
+        const blob = new Blob([pdfArrayBuffer], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        createdBlobUrl = url;
+
+        if (isMounted) {
+          setBlobUrl(url);
+          setLoading(false);
         }
-        const blob = new Blob([bytes], { type: "application/pdf" });
-        objectUrl = URL.createObjectURL(blob);
-        setBlobUrl(objectUrl);
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to load magazine",
-        );
-      } finally {
-        setLoading(false);
+        if (isMounted) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Failed to load magazine. Please check your connection or access rights.",
+          );
+          setLoading(false);
+        }
       }
     }
 
-    fetchPdf();
+    // Always fetch through the secure API proxy.
+    // Never use pdfUrl directly — it's a local WP URL (e.g., ahlan-backend.local)
+    // that is only resolvable server-side.
+    fetchPdfBlob();
 
     return () => {
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      isMounted = false;
+      if (createdBlobUrl && createdBlobUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(createdBlobUrl);
+      }
     };
   }, [magazineId, pdfUrl, token]);
 
@@ -208,8 +177,22 @@ export default function SecurePdfViewer({
   return (
     <div
       onContextMenu={handleContextMenu}
-      className="secure-pdf-viewer relative flex h-[100dvh] sm:h-[85vh] flex-col overflow-hidden rounded-2xl bg-[var(--color-dark-bg)] shadow-[var(--shadow-modal)]"
+      className="secure-pdf-viewer fixed inset-0 z-[9999] flex h-[100dvh] w-screen flex-col overflow-hidden bg-[var(--color-dark-bg)] select-none"
+      aria-label={title}
+      title={title}
     >
+      {/* Floating Back Button (< in transparent circle) */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-4 left-4 z-[10000] flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white/90 hover:bg-black/80 hover:text-white transition-all border border-white/20 shadow-lg backdrop-blur-md hover:scale-105"
+          title="Back to E-Magazine Collection"
+          aria-label="Back to E-Magazine Collection"
+        >
+          <ArrowLeft size={20} />
+        </button>
+      )}
+
       {/* Anti-print and Anti-select CSS */}
       <style
         dangerouslySetInnerHTML={{
@@ -234,30 +217,9 @@ export default function SecurePdfViewer({
               user-select: none !important;
               -webkit-user-select: none !important;
             }
-            /* Dark theme overrides for the PDF toolbar */
-            .rpv-core__toolbar {
-              background-color: transparent !important;
-              border-bottom: 0px !important;
-            }
-            .rpv-core__button, .rpv-core__icon {
-              color: rgba(255,255,255,0.8) !important;
-            }
-            .rpv-core__button:hover {
-              background-color: rgba(255,255,255,0.1) !important;
-            }
-            .rpv-core__textbox {
-              background-color: rgba(255,255,255,0.1) !important;
-              color: white !important;
-              border: 1px solid rgba(255,255,255,0.2) !important;
-            }
-            .rpv-core__popover-body {
-              background-color: #1a1a2e !important;
-              color: white !important;
-              border: 1px solid rgba(255,255,255,0.1) !important;
-            }
-            .rpv-core__menu-item:hover {
-              background-color: rgba(255,255,255,0.1) !important;
-              color: white !important;
+            /* Dark theme overrides for the PDF viewer */
+            .rpv-core__viewer {
+              background-color: #131320 !important;
             }
           `,
         }}
@@ -282,7 +244,6 @@ export default function SecurePdfViewer({
               ))}
            </div>
         </div>
-
 
         {blobUrl && (
           <div className="h-full w-full relative z-0">

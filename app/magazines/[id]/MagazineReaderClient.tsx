@@ -25,8 +25,16 @@ export default function MagazineReaderClient({
   // Auth gate
   if (!isAuthenticated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--color-dark-bg)] pt-20">
-        <div className="mx-4 max-w-md rounded-2xl bg-white p-10 text-center shadow-[var(--shadow-card)]">
+      <div className="fixed inset-0 z-50 flex h-[100dvh] w-screen items-center justify-center bg-[var(--color-dark-bg)] p-4">
+        <Link
+          href="/library"
+          className="absolute top-4 left-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/90 hover:bg-white/20 hover:text-white transition-all border border-white/15 shadow-lg"
+          title="Back to E-Magazine Collection"
+          aria-label="Back to E-Magazine Collection"
+        >
+          <ArrowLeft size={20} />
+        </Link>
+        <div className="w-full max-w-md rounded-2xl bg-white p-10 text-center shadow-[var(--shadow-card)]">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
             <span className="text-3xl">🔒</span>
           </div>
@@ -42,13 +50,6 @@ export default function MagazineReaderClient({
           >
             Sign In
           </button>
-          <Link
-            href="/library"
-            className="mt-4 inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-primary"
-          >
-            <ArrowLeft size={14} />
-            Back to Library
-          </Link>
         </div>
       </div>
     );
@@ -56,8 +57,16 @@ export default function MagazineReaderClient({
 
   if (!magazine) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--color-dark-bg)] pt-20">
-        <div className="mx-4 max-w-md rounded-2xl bg-white p-10 text-center shadow-[var(--shadow-card)]">
+      <div className="fixed inset-0 z-50 flex h-[100dvh] w-screen items-center justify-center bg-[var(--color-dark-bg)] p-4">
+        <Link
+          href="/library"
+          className="absolute top-4 left-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/90 hover:bg-white/20 hover:text-white transition-all border border-white/15 shadow-lg"
+          title="Back to E-Magazine Collection"
+          aria-label="Back to E-Magazine Collection"
+        >
+          <ArrowLeft size={20} />
+        </Link>
+        <div className="w-full max-w-md rounded-2xl bg-white p-10 text-center shadow-[var(--shadow-card)]">
           <AlertTriangle size={40} className="mx-auto mb-4 text-error" />
           <h1 className="font-heading text-xl font-bold text-heading">
             Magazine Not Found
@@ -78,46 +87,38 @@ export default function MagazineReaderClient({
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-dark-bg)] pt-20 pb-8">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        {/* Back nav */}
-        <div className="mb-4">
+    <div className="fixed inset-0 z-50 h-[100dvh] w-screen bg-[var(--color-dark-bg)] overflow-hidden">
+      {!hasAccess(magazineId) ? (
+        <div className="relative flex h-full w-full flex-col items-center justify-center p-6 text-center">
           <Link
             href="/library"
-            className="inline-flex items-center gap-2 text-sm font-medium text-white/50 transition-colors hover:text-accent"
+            className="absolute top-4 left-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/90 hover:bg-white/20 hover:text-white transition-all border border-white/15 shadow-lg"
+            title="Back to E-Magazine Collection"
+            aria-label="Back to E-Magazine Collection"
           >
-            <ArrowLeft size={16} />
-            Back to Library
+            <ArrowLeft size={20} />
           </Link>
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-error/10">
+            <AlertTriangle size={32} className="text-error" />
+          </div>
+          <h2 className="font-heading text-2xl font-bold text-white mb-3">
+            Magazine Locked
+          </h2>
+          <p className="max-w-md text-sm text-white/60 mb-8">
+            You do not have access to this magazine. Please purchase it to continue reading.
+          </p>
+          <button className="rounded-xl bg-primary px-8 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-primary-light shadow-[var(--shadow-btn)] hover:shadow-[var(--shadow-btn-hover)]">
+            Buy Now - {formatIDR(magazine.price)}
+          </button>
         </div>
-
-        {/* Secure PDF Viewer or Locked State */}
-        <div className="min-h-[70vh]">
-          {!hasAccess(magazineId) ? (
-            <div className="flex h-[70vh] flex-col items-center justify-center rounded-2xl bg-[var(--color-dark-surface)] border border-white/10 p-10 text-center shadow-2xl">
-              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-error/10">
-                <AlertTriangle size={32} className="text-error" />
-              </div>
-              <h2 className="font-heading text-2xl font-bold text-white mb-3">
-                Magazine Locked
-              </h2>
-              <p className="max-w-md text-sm text-white/60 mb-8">
-                You do not have access to this magazine. Please purchase it to continue reading.
-              </p>
-              <button className="rounded-xl bg-primary px-8 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-primary-light shadow-[var(--shadow-btn)] hover:shadow-[var(--shadow-btn-hover)]">
-                Buy Now - {formatIDR(magazine.price)}
-              </button>
-            </div>
-          ) : (
-            <SecurePdfViewer
-              magazineId={magazine.id}
-              pdfUrl={magazine.pdfUrl}
-              title={`${magazine.title} — Issue #${magazine.issueNumber}`}
-              onClose={() => router.push("/library")}
-            />
-          )}
-        </div>
-      </div>
+      ) : (
+        <SecurePdfViewer
+          magazineId={magazine.id}
+          pdfUrl={magazine.pdfUrl}
+          title={`${magazine.title} — Issue #${magazine.issueNumber}`}
+          onClose={() => router.push("/library")}
+        />
+      )}
     </div>
   );
 }

@@ -113,23 +113,25 @@ export async function POST(request: Request, context: RouteContext) {
       );
     }
 
-    // 5. Encode as Base64 and return inside JSON envelope.
-    //    This makes the response invisible to IDM — it's just "application/json".
+    // 5. Stream raw PDF binary as application/octet-stream.
+    //    IDM is blocked because:
+    //    - Request method is POST (IDM only intercepts GET requests)
+    //    - Content-Type is application/octet-stream (IDM looks for application/pdf)
+    //    - No Content-Disposition header (no filename trigger for IDM)
+    //    - URL path has no .pdf extension
     const pdfBuffer = await pdfResponse.arrayBuffer();
-    const base64 = Buffer.from(pdfBuffer).toString("base64");
 
-    return NextResponse.json(
-      { data: base64 },
-      {
-        status: 200,
-        headers: {
-          "Cache-Control": "private, no-store, no-cache, must-revalidate",
-          "X-Content-Type-Options": "nosniff",
-          "X-Frame-Options": "SAMEORIGIN",
-          "Content-Security-Policy": "frame-ancestors 'self'",
-        },
+    return new Response(pdfBuffer, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/octet-stream",
+        "Content-Length": String(pdfBuffer.byteLength),
+        "Cache-Control": "private, no-store, no-cache, must-revalidate",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "SAMEORIGIN",
+        "Content-Security-Policy": "frame-ancestors 'self'",
       },
-    );
+    });
   } catch {
     return NextResponse.json(
       { error: "Internal server error" },
