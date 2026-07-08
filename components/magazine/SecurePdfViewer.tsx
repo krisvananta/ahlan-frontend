@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Worker, Viewer, SpecialZoomLevel } from "@react-pdf-viewer/core";
+import { Worker, Viewer, SpecialZoomLevel, ScrollMode } from "@react-pdf-viewer/core";
 import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
@@ -50,6 +50,20 @@ export default function SecurePdfViewer({
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMobileOrTablet, setIsMobileOrTablet] = useState(false);
+
+  // Detect mobile/tablet vs desktop PC/laptop for responsive scroll mode
+  useEffect(() => {
+    const checkDevice = () => {
+      const isTouchOrSmall =
+        window.innerWidth <= 1024 || window.matchMedia("(pointer: coarse)").matches;
+      setIsMobileOrTablet(isTouchOrSmall);
+    };
+
+    checkDevice();
+    window.addEventListener("resize", checkDevice);
+    return () => window.removeEventListener("resize", checkDevice);
+  }, []);
 
   // Lock background body scroll when in immersive reader mode
   useEffect(() => {
@@ -221,6 +235,34 @@ export default function SecurePdfViewer({
             .rpv-core__viewer {
               background-color: #131320 !important;
             }
+            /* Completely hide empty toolbar and sidebar containers from default layout */
+            .rpv-default-layout__toolbar,
+            .rpv-default-layout__sidebar {
+              display: none !important;
+              width: 0 !important;
+              height: 0 !important;
+              padding: 0 !important;
+              margin: 0 !important;
+              border: none !important;
+              overflow: hidden !important;
+            }
+            /* Remove borders and backgrounds from layout containers */
+            .rpv-default-layout__container,
+            .rpv-default-layout__body {
+              border: none !important;
+              box-shadow: none !important;
+              background: transparent !important;
+            }
+            /* Enable horizontal swipe navigation with page-by-page snapping only on mobile/tablet */
+            @media (max-width: 1024px), (pointer: coarse) {
+              .rpv-core__inner-pages {
+                scroll-snap-type: x mandatory !important;
+              }
+              .rpv-core__page-layer {
+                scroll-snap-align: center !important;
+                scroll-snap-stop: always !important;
+              }
+            }
           `,
         }}
       />
@@ -252,6 +294,7 @@ export default function SecurePdfViewer({
                 fileUrl={blobUrl}
                 plugins={[defaultLayoutPluginInstance]}
                 defaultScale={SpecialZoomLevel.PageFit}
+                scrollMode={isMobileOrTablet ? ScrollMode.Horizontal : ScrollMode.Vertical}
                 theme="dark"
               />
             </Worker>
@@ -261,3 +304,4 @@ export default function SecurePdfViewer({
     </div>
   );
 }
+
